@@ -57,11 +57,18 @@ impl Registers {
 }
 
 // Represents the 'f' register, whose most significant nibble contains 4 flags
-struct FlagsRegister {
-    zero: bool,
-    subtract: bool,
-    half_carry: bool,
-    carry: bool
+#[derive(Default)]
+pub struct FlagsRegister {
+    pub zero: bool,
+    pub subtract: bool,
+    pub half_carry: bool,
+    pub carry: bool
+}
+
+impl FlagsRegister {
+  pub fn new () -> FlagsRegister {
+    return FlagsRegister { ..Default::default() }
+  }
 }
 
 const ZERO_FLAG_BYTE_POSITION: u8 = 7;
