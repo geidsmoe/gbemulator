@@ -1,4 +1,5 @@
-mod registers;  
+mod registers;
+pub mod tests;  
 
 use std::collections::HashMap;
 use std::fs;
@@ -6,8 +7,14 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
+
+fn two_bytes_to_u16(lsb: u8, msb: u8) -> u16 {
+  (((msb as u16) << 8) | (lsb as u16)).into()
+}
+
 pub struct CPU {
   pub pc: u16,
+  pub sp: u16,
   pub registers: registers::Registers,
   pub flags_register: registers::FlagsRegister,
   pub ram: [u8; 0x10000],
@@ -15,7 +22,22 @@ pub struct CPU {
 
 impl CPU {
   pub fn new() -> CPU {
-    return CPU { pc: 0x100, registers: registers::Registers::new(), flags_register: registers::FlagsRegister::new(), ram: [0; 0x10000], }
+    return CPU { pc: 0x100, sp: 0xFFFF, registers: registers::Registers::new(), flags_register: registers::FlagsRegister::new(), ram: [0; 0x10000], }
+  }
+
+  pub fn pop(&mut self) -> u16 {
+    let lsb = self.ram[self.sp as usize];
+    let msb = self.ram[(self.sp + 1) as usize];
+    self.sp += 2;
+    return two_bytes_to_u16(lsb, msb);
+  }
+
+  pub fn push(&mut self, next_address: u16) {
+    let lsb: u8 =  (next_address & 0xFF) as u8;
+    let msb: u8 = ((next_address & 0xFF00) >> 8) as u8;
+    self.ram[(self.sp - 1) as usize] = msb;
+    self.ram[(self.sp - 2) as usize] = lsb;
+    self.sp -= 2;
   }
 }
 
@@ -48,7 +70,7 @@ struct Flags {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct InstructionSet {
+pub struct InstructionSet {
     unprefixed: HashMap<String, Instruction>,
     cbprefixed: HashMap<String, Instruction>
 }
@@ -56,11 +78,181 @@ struct InstructionSet {
 fn jump(opcode: u8, instruction_set: &InstructionSet, cpu: &CPU) -> u16 {
   let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
   println!("{:#04X} {:#04X}: {} {:#?} JP A16", cpu.pc, opcode, instruction.mnemonic, instruction.operands);
-  let lower_order = cpu.ram[cpu.pc as usize];
-  let upper_order = cpu.ram[(cpu.pc + 1) as usize];
-  let next_address: u16 = (((upper_order as u16) << 8) | (lower_order as u16)).into();
-  println!("{:#04X} = {:#04X} | {:#04X}", next_address, upper_order, lower_order);
+  let lsb = cpu.ram[cpu.pc as usize];
+  let msb = cpu.ram[(cpu.pc + 1) as usize];
+  let next_address: u16 = two_bytes_to_u16(lsb, msb);
+  println!("{:#04X} = {:#04X} | {:#04X}", next_address, msb, lsb);
   return next_address;
+}
+
+pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
+  let opcode = cpu.ram[cpu.pc as usize];
+    cpu.pc += 1;
+    match opcode  {
+      0x00 => {
+        //println!("{:#04X}: NOP", opcode);
+      }
+      0xCB => {
+        let opcode = cpu.ram[cpu.pc as usize];
+        cpu.pc += 1;
+        let instruction = &instruction_set.cbprefixed[&format!("{:#04X}", opcode)];
+        for operand in &instruction.operands {
+          if operand.bytes.is_some() {
+            cpu.pc += operand.bytes.unwrap() as u16;
+          }
+        }
+        println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
+      }
+      /* START JUMP OPCODES */
+      0xC2 => {
+        if !cpu.flags_register.zero {
+          cpu.pc = jump(opcode, &instruction_set, &cpu);
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xC3 => {
+        cpu.pc = jump(opcode, &instruction_set, &cpu);
+      }
+      0xCA => {
+        if cpu.flags_register.zero {
+          cpu.pc = jump(opcode, &instruction_set, &cpu);
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xD2 => {
+        if !cpu.flags_register.carry {
+          cpu.pc = jump(opcode, &instruction_set, &cpu);
+        } else {
+          cpu.pc += 2
+        }
+      }
+      0xDA => {
+        if cpu.flags_register.carry {
+          cpu.pc = jump(opcode, &instruction_set, &cpu);
+        } else {
+          cpu.pc += 2
+        } 
+      }
+      0xE9 => {
+        cpu.pc = cpu.registers.get_hl();
+      }
+      /* END JUMP OPCODES */
+      /* START RETURN OPCODES */
+      0xC9 => {
+        cpu.pc = cpu.pop();
+      }
+      0xC0 => {
+        if !cpu.flags_register.zero {
+          cpu.pc = cpu.pop();
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xC8 => {
+        if cpu.flags_register.zero {
+          cpu.pc = cpu.pop();
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xD0 => {
+        if !cpu.flags_register.carry {
+          cpu.pc = cpu.pop();
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xD8 => {
+        if cpu.flags_register.carry {
+          cpu.pc = cpu.pop();
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xD9 => {
+        // TODO IMPLEMENT EI THEN COME BACK, THIS IS EI + RET
+      }
+      /* END RETURN OPCODES */
+      /* START CALL OPCODES */
+      0xCD => {
+        let lsb = cpu.ram[cpu.pc as usize];
+        let msb = cpu.ram[(cpu.pc + 1) as usize];
+        let next_address: u16 = two_bytes_to_u16(lsb, msb);
+        
+        // push current PC onto the stack
+        cpu.push(cpu.pc);
+        // set the PC to be A16
+        cpu.pc = next_address;
+      }
+      0xCC => {
+        if cpu.flags_register.zero {
+          let lsb = cpu.ram[cpu.pc as usize];
+          let msb = cpu.ram[(cpu.pc + 1) as usize];
+          let next_address: u16 = two_bytes_to_u16(lsb, msb);
+          
+          // push current PC onto the stack
+          cpu.push(cpu.pc);
+          // set the PC to be A16
+          cpu.pc = next_address;
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xC4 => {
+        if !cpu.flags_register.zero {
+          let lsb = cpu.ram[cpu.pc as usize];
+          let msb = cpu.ram[(cpu.pc + 1) as usize];
+          let next_address: u16 = two_bytes_to_u16(lsb, msb);
+          
+          // push current PC onto the stack
+          cpu.push(cpu.pc);
+          // set the PC to be A16
+          cpu.pc = next_address;
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xD4 => {
+        if !cpu.flags_register.carry {
+          let lsb = cpu.ram[cpu.pc as usize];
+          let msb = cpu.ram[(cpu.pc + 1) as usize];
+          let next_address: u16 = two_bytes_to_u16(lsb, msb);
+          
+          // push current PC onto the stack
+          cpu.push(cpu.pc);
+          // set the PC to be A16
+          cpu.pc = next_address;
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      0xDC => {
+        if cpu.flags_register.carry {
+          let lsb = cpu.ram[cpu.pc as usize];
+          let msb = cpu.ram[(cpu.pc + 1) as usize];
+          let next_address: u16 = two_bytes_to_u16(lsb, msb);
+          
+          // push current PC onto the stack
+          cpu.push(cpu.pc);
+          // set the PC to be A16
+          cpu.pc = next_address;
+        } else {
+          cpu.pc += 2;
+        }
+      }
+      /* END CALL OPCODES */
+      _ => {
+        let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
+        for operand in &instruction.operands {
+          if operand.bytes.is_some() {
+            cpu.pc += operand.bytes.unwrap() as u16;
+          }
+        }
+        println!("{:#04X} {:#04X}: {} {:#?} Unprefixed opcode not implemented", cpu.pc, opcode, instruction.mnemonic, instruction.operands);
+      }
+    }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -102,74 +294,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   println!("Cartridge title: {}", cartridge_title);
 
 
-  let mut num_instructions: i64 = 0;
+
   loop {
-    let opcode = cpu.ram[cpu.pc as usize];
-    cpu.pc += 1;
-    num_instructions += 1;
-    match opcode  {
-      0x00 => {
-        //println!("{:#04X}: NOP", opcode);
-      }
-      0xCB => {
-        let opcode = cpu.ram[cpu.pc as usize];
-        cpu.pc += 1;
-        let instruction = &instruction_set.cbprefixed[&format!("{:#04X}", opcode)];
-        for operand in &instruction.operands {
-          if operand.bytes.is_some() {
-            cpu.pc += operand.bytes.unwrap() as u16;
-          }
-        }
-        println!("{:#04X} {:#04X}: {} {:#?} CB Prefixed opcode not implemented", num_instructions, opcode, instruction.mnemonic, instruction.operands);
-      }
-      0xC2 => {
-        if !cpu.flags_register.zero {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
-        } else {
-          cpu.pc += 2;
-        }
-      }
-      0xC3 => {
-        cpu.pc = jump(opcode, &instruction_set, &cpu);
-      }
-      0xCA => {
-        if cpu.flags_register.zero {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
-        } else {
-          cpu.pc += 2;
-        }
-      }
-      0xD2 => {
-        if !cpu.flags_register.carry {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
-        } else {
-          cpu.pc += 2
-        }
-      }
-      0xDA => {
-        if cpu.flags_register.carry {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
-        } else {
-          cpu.pc += 2
-        } 
-      }
-      0xE9 => {
-        cpu.pc = cpu.registers.get_hl();
-      }
-      _ => {
-        let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
-        for operand in &instruction.operands {
-          if operand.bytes.is_some() {
-            cpu.pc += operand.bytes.unwrap() as u16;
-          }
-        }
-        println!("{:#04X} {:#04X}: {} {:#?} Unprefixed opcode not implemented", cpu.pc, opcode, instruction.mnemonic, instruction.operands);
-      }
-    }
-    if cpu.pc >= 65535 {
-      println!("Preventing PC overflow");
-      break;
-    }
+    execute_opcode(&instruction_set, &mut cpu);
+    // if cpu.pc >= 65535 {
+    //   println!("Preventing PC overflow");
+    //   break;
+    // }
   }
 
   Ok(())
