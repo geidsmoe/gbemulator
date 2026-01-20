@@ -146,29 +146,21 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0xC0 => {
         if !cpu.flags_register.zero {
           cpu.pc = cpu.pop();
-        } else {
-          cpu.pc += 2;
         }
       }
       0xC8 => {
         if cpu.flags_register.zero {
           cpu.pc = cpu.pop();
-        } else {
-          cpu.pc += 2;
         }
       }
       0xD0 => {
         if !cpu.flags_register.carry {
           cpu.pc = cpu.pop();
-        } else {
-          cpu.pc += 2;
         }
       }
       0xD8 => {
         if cpu.flags_register.carry {
           cpu.pc = cpu.pop();
-        } else {
-          cpu.pc += 2;
         }
       }
       0xD9 => {
@@ -182,7 +174,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         let next_address: u16 = two_bytes_to_u16(lsb, msb);
         
         // push current PC onto the stack
-        cpu.push(cpu.pc);
+        cpu.push(cpu.pc + 2);
         // set the PC to be A16
         cpu.pc = next_address;
       }
@@ -193,7 +185,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
           let next_address: u16 = two_bytes_to_u16(lsb, msb);
           
           // push current PC onto the stack
-          cpu.push(cpu.pc);
+          cpu.push(cpu.pc + 2);
           // set the PC to be A16
           cpu.pc = next_address;
         } else {
@@ -207,7 +199,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
           let next_address: u16 = two_bytes_to_u16(lsb, msb);
           
           // push current PC onto the stack
-          cpu.push(cpu.pc);
+          cpu.push(cpu.pc + 2);
           // set the PC to be A16
           cpu.pc = next_address;
         } else {
@@ -221,7 +213,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
           let next_address: u16 = two_bytes_to_u16(lsb, msb);
           
           // push current PC onto the stack
-          cpu.push(cpu.pc);
+          cpu.push(cpu.pc + 2);
           // set the PC to be A16
           cpu.pc = next_address;
         } else {
@@ -235,7 +227,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
           let next_address: u16 = two_bytes_to_u16(lsb, msb);
           
           // push current PC onto the stack
-          cpu.push(cpu.pc);
+          cpu.push(cpu.pc + 2);
           // set the PC to be A16
           cpu.pc = next_address;
         } else {
