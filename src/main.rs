@@ -1,47 +1,15 @@
 mod registers;
 mod cpu;
+mod instructions;
 pub mod tests;
 
-use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-use serde::{Deserialize, Serialize};
 use cpu::{CPU, two_bytes_to_u16};
 
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Instruction {
-    mnemonic: String,
-    bytes: u8,
-    cycles: Vec<u32>,
-    operands: Vec<Operand>,
-    immediate: bool,
-    flags: Flags,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Operand {
-    name: String,
-    #[serde(default)]
-    bytes: Option<u8>,
-    immediate: bool,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Flags {
-    Z: String,
-    N: String,
-    H: String,
-    C: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct InstructionSet {
-    unprefixed: HashMap<String, Instruction>,
-    cbprefixed: HashMap<String, Instruction>
-}
+use crate::instructions::*;
 
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
   let opcode = cpu.ram[cpu.pc as usize];

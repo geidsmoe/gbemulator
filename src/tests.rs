@@ -2,7 +2,7 @@
 mod tests {
     use crate::CPU;
     use crate::registers::FlagsRegister;
-    use crate::InstructionSet;
+    use crate::instructions::InstructionSet;
     use crate::execute_opcode;
     use serde::Deserialize;
     use std::fs;
