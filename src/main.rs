@@ -93,6 +93,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         //println!("{:#04X}: NOP", opcode);
       }
       /* START LOAD OPCODES */
+      /* Start direct loads */
       0x01 => {
         cpu.registers.set_bc(cpu.read_u16_at_pc());
         cpu.pc = cpu.pc.wrapping_add(2);
@@ -109,11 +110,37 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.sp = cpu.read_u16_at_pc();
         cpu.pc = cpu.pc.wrapping_add(2)
       }
+      /* End direct loads */
       0x02 => {
         cpu.ram[cpu.registers.get_bc() as usize] = cpu.registers.a; 
       }
+      0x12 => {
+        cpu.ram[cpu.registers.get_de() as usize] = cpu.registers.a;
+      }
+      0x22 => {
+        let hl_value = cpu.registers.get_hl();
+        cpu.ram[hl_value as usize] = cpu.registers.a;
+        cpu.registers.set_hl(hl_value + 1);
+      }
+      0x32 => {
+        let hl_value = cpu.registers.get_hl();
+        cpu.ram[hl_value as usize] = cpu.registers.a;
+        cpu.registers.set_hl(hl_value - 1);
+      }
       0x06 => {
         cpu.registers.b = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x16 => {
+        cpu.registers.d = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x26 => {
+        cpu.registers.h = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x36 => {
+        cpu.ram[cpu.registers.get_hl() as usize] = cpu.ram[cpu.pc as usize];
         cpu.pc = cpu.pc.wrapping_add(1);
       }
       0x08 => {

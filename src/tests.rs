@@ -119,6 +119,12 @@ mod tests {
     opcode_test!(test_00_nop, "00");
     opcode_test!(test_01_ld_bc_d16, "01");
     opcode_test!(test_02_ld_bc_a, "02");
+    opcode_test!(test_12_ld_de_a, "12");
+    opcode_test!(test_22_ld_hli_a, "22");
+    opcode_test!(test_06_ld_b_d8, "06");
+    opcode_test!(test_16_ld_d_d8, "16");
+    opcode_test!(test_26_ld_h_d8, "26");
+    opcode_test!(test_36_ld_hl_d8, "36");
     opcode_test!(test_c0_ret_nz, "c0");
     opcode_test!(test_c2_jp_nz_a16, "c2");
     opcode_test!(test_c3_jp_a16, "c3");
@@ -146,7 +152,6 @@ mod tests {
     opcode_test!(test_03_inc_bc, "03", ignore);
     opcode_test!(test_04_inc_b, "04", ignore);
     opcode_test!(test_05_dec_b, "05", ignore);
-    opcode_test!(test_06_ld_b_d8, "06", ignore);
     opcode_test!(test_07_rlca, "07", ignore);
     opcode_test!(test_09_add_hl_bc, "09", ignore);
     opcode_test!(test_0b_dec_bc, "0b", ignore);
@@ -156,11 +161,9 @@ mod tests {
     opcode_test!(test_0f_rrca, "0f", ignore);
     // 0x10 - 0x1F
     opcode_test!(test_10_stop, "10", ignore);
-    opcode_test!(test_12_ld_de_a, "12", ignore);
     opcode_test!(test_13_inc_de, "13", ignore);
     opcode_test!(test_14_inc_d, "14", ignore);
     opcode_test!(test_15_dec_d, "15", ignore);
-    opcode_test!(test_16_ld_d_d8, "16", ignore);
     opcode_test!(test_17_rla, "17", ignore);
     opcode_test!(test_18_jr_r8, "18", ignore);
     opcode_test!(test_19_add_hl_de, "19", ignore);
@@ -173,12 +176,9 @@ mod tests {
 
     // 0x20 - 0x2F
     opcode_test!(test_20_jr_nz_r8, "20", ignore);
-    
-    opcode_test!(test_22_ld_hli_a, "22", ignore);
     opcode_test!(test_23_inc_hl, "23", ignore);
     opcode_test!(test_24_inc_h, "24", ignore);
     opcode_test!(test_25_dec_h, "25", ignore);
-    opcode_test!(test_26_ld_h_d8, "26", ignore);
     opcode_test!(test_27_daa, "27", ignore);
     opcode_test!(test_28_jr_z_r8, "28", ignore);
     opcode_test!(test_29_add_hl_hl, "29", ignore);
@@ -195,7 +195,6 @@ mod tests {
     opcode_test!(test_33_inc_sp, "33", ignore);
     opcode_test!(test_34_inc_hl_ind, "34", ignore);
     opcode_test!(test_35_dec_hl_ind, "35", ignore);
-    opcode_test!(test_36_ld_hl_d8, "36", ignore);
     opcode_test!(test_37_scf, "37", ignore);
     opcode_test!(test_38_jr_c_r8, "38", ignore);
     opcode_test!(test_39_add_hl_sp, "39", ignore);
