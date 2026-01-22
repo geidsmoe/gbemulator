@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 use cpu::{CPU, two_bytes_to_u16};
+use crate::registers::FlagsRegister;
 
 use crate::instructions::*;
 
@@ -175,9 +176,23 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x7E => { cpu.registers.a = cpu.ram[cpu.registers.get_hl() as usize]; }
       0x7F => { /* LD reg into itself is no op */ }
       /* END LOAD OPCODES */
+      /* START 8BIT ADD */
+      0x80 => {
+        let value =   cpu.registers.b;
+        let mut flags_register = FlagsRegister::from(cpu.registers.f);
+        let (result, carry) = cpu.registers.a.overflowing_add(cpu.registers.b);
+        let half_carry = (cpu.registers.a & 0x0f).checked_add(value | 0xf0).is_none();
+        flags_register.carry = carry;
+        flags_register.zero = result == 0;
+        flags_register.half_carry = half_carry;
+        flags_register.subtract = false;
+        cpu.registers.f = u8::from(flags_register);
+        cpu.registers.a = result;
+      }
+      /* END 8BIT ADD */
       /* START JUMP OPCODES */
       0xC2 => {
-        if !cpu.flags_register.zero {
+        if !FlagsRegister::from(cpu.registers.f).zero {
           cpu.pc = cpu.read_u16_at_pc();
         } else {
           cpu.pc = cpu.pc.wrapping_add(2);
@@ -187,21 +202,21 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.pc = cpu.read_u16_at_pc();
       }
       0xCA => {
-        if cpu.flags_register.zero {
+        if FlagsRegister::from(cpu.registers.f).zero {
           cpu.pc = cpu.read_u16_at_pc();
         } else {
           cpu.pc = cpu.pc.wrapping_add(2);
         }
       }
       0xD2 => {
-        if !cpu.flags_register.carry {
+        if !FlagsRegister::from(cpu.registers.f).carry {
           cpu.pc = cpu.read_u16_at_pc();
         } else {
           cpu.pc = cpu.pc.wrapping_add(2)
         }
       }
       0xDA => {
-        if cpu.flags_register.carry {
+        if FlagsRegister::from(cpu.registers.f).carry {
           cpu.pc = cpu.read_u16_at_pc();
         } else {
           cpu.pc = cpu.pc.wrapping_add(2)
@@ -216,22 +231,22 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.pc = cpu.pop();
       }
       0xC0 => {
-        if !cpu.flags_register.zero {
+        if !FlagsRegister::from(cpu.registers.f).zero {
           cpu.pc = cpu.pop();
         }
       }
       0xC8 => {
-        if cpu.flags_register.zero {
+        if FlagsRegister::from(cpu.registers.f).zero {
           cpu.pc = cpu.pop();
         }
       }
       0xD0 => {
-        if !cpu.flags_register.carry {
+        if !FlagsRegister::from(cpu.registers.f).carry {
           cpu.pc = cpu.pop();
         }
       }
       0xD8 => {
-        if cpu.flags_register.carry {
+        if FlagsRegister::from(cpu.registers.f).carry {
           cpu.pc = cpu.pop();
         }
       }
@@ -251,7 +266,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.pc = next_address;
       }
       0xCC => {
-        if cpu.flags_register.zero {
+        if FlagsRegister::from(cpu.registers.f).zero {
           let lsb = cpu.ram[cpu.pc as usize];
           let msb = cpu.ram[(cpu.pc + 1) as usize];
           let next_address: u16 = two_bytes_to_u16(lsb, msb);
@@ -265,7 +280,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         }
       }
       0xC4 => {
-        if !cpu.flags_register.zero {
+        if !FlagsRegister::from(cpu.registers.f).zero {
           let lsb = cpu.ram[cpu.pc as usize];
           let msb = cpu.ram[(cpu.pc + 1) as usize];
           let next_address: u16 = two_bytes_to_u16(lsb, msb);
@@ -279,7 +294,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         }
       }
       0xD4 => {
-        if !cpu.flags_register.carry {
+        if !FlagsRegister::from(cpu.registers.f).carry {
           let lsb = cpu.ram[cpu.pc as usize];
           let msb = cpu.ram[(cpu.pc + 1) as usize];
           let next_address: u16 = two_bytes_to_u16(lsb, msb);
@@ -292,7 +307,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         }
       }
       0xDC => {
-        if cpu.flags_register.carry {
+        if FlagsRegister::from(cpu.registers.f).carry {
           let lsb = cpu.ram[cpu.pc as usize];
           let msb = cpu.ram[(cpu.pc + 1) as usize];
           let next_address: u16 = two_bytes_to_u16(lsb, msb);

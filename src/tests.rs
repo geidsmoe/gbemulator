@@ -45,7 +45,6 @@ mod tests {
         cpu.registers.f = state.f;
         cpu.registers.h = state.h;
         cpu.registers.l = state.l;
-        cpu.flags_register = FlagsRegister::from(state.f);
 
         for ram_entry in &state.ram {
             let address = ram_entry[0] as usize;
@@ -274,7 +273,7 @@ mod tests {
     opcode_test!(test_3f_ccf, "3f", ignore);
 
     // 0x80 - 0x8F (ADD/ADC A, r)
-    opcode_test!(test_80_add_a_b, "80", ignore);
+    opcode_test!(test_80_add_a_b, "80");
     opcode_test!(test_81_add_a_c, "81", ignore);
     opcode_test!(test_82_add_a_d, "82", ignore);
     opcode_test!(test_83_add_a_e, "83", ignore);

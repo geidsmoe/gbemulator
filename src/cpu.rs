@@ -8,13 +8,12 @@ pub struct CPU {
 pub pc: u16,
 pub sp: u16,
 pub registers: registers::Registers,
-pub flags_register: registers::FlagsRegister,
 pub ram: [u8; 0x10000],
 }
 
 impl CPU {
 pub fn new() -> CPU {
-    return CPU { pc: 0x100, sp: 0xFFFF, registers: registers::Registers::new(), flags_register: registers::FlagsRegister::new(), ram: [0; 0x10000], }
+    return CPU { pc: 0x100, sp: 0xFFFF, registers: registers::Registers::new(), ram: [0; 0x10000], }
 }
 
 pub fn pop(&mut self) -> u16 {
