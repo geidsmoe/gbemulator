@@ -291,22 +291,22 @@ mod tests {
     opcode_test!(test_8f_adc_a_a, "8f");
 
     // 0x90 - 0x9F (SUB/SBC A, r)
-    opcode_test!(test_90_sub_b, "90", ignore);
-    opcode_test!(test_91_sub_c, "91", ignore);
-    opcode_test!(test_92_sub_d, "92", ignore);
-    opcode_test!(test_93_sub_e, "93", ignore);
-    opcode_test!(test_94_sub_h, "94", ignore);
-    opcode_test!(test_95_sub_l, "95", ignore);
-    opcode_test!(test_96_sub_hl, "96", ignore);
-    opcode_test!(test_97_sub_a, "97", ignore);
-    opcode_test!(test_98_sbc_a_b, "98", ignore);
-    opcode_test!(test_99_sbc_a_c, "99", ignore);
-    opcode_test!(test_9a_sbc_a_d, "9a", ignore);
-    opcode_test!(test_9b_sbc_a_e, "9b", ignore);
-    opcode_test!(test_9c_sbc_a_h, "9c", ignore);
-    opcode_test!(test_9d_sbc_a_l, "9d", ignore);
-    opcode_test!(test_9e_sbc_a_hl, "9e", ignore);
-    opcode_test!(test_9f_sbc_a_a, "9f", ignore);
+    opcode_test!(test_90_sub_b, "90");
+    opcode_test!(test_91_sub_c, "91");
+    opcode_test!(test_92_sub_d, "92");
+    opcode_test!(test_93_sub_e, "93");
+    opcode_test!(test_94_sub_h, "94");
+    opcode_test!(test_95_sub_l, "95");
+    opcode_test!(test_96_sub_hl, "96");
+    opcode_test!(test_97_sub_a, "97");
+    opcode_test!(test_98_sbc_a_b, "98");
+    opcode_test!(test_99_sbc_a_c, "99");
+    opcode_test!(test_9a_sbc_a_d, "9a");
+    opcode_test!(test_9b_sbc_a_e, "9b");
+    opcode_test!(test_9c_sbc_a_h, "9c");
+    opcode_test!(test_9d_sbc_a_l, "9d");
+    opcode_test!(test_9e_sbc_a_hl, "9e");
+    opcode_test!(test_9f_sbc_a_a, "9f");
 
     // 0xA0 - 0xAF (AND/XOR A, r)
     opcode_test!(test_a0_and_b, "a0", ignore);

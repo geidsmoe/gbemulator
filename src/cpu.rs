@@ -64,4 +64,20 @@ impl CPU {
         self.registers.f = u8::from(flags_register);
         self.registers.a = result;
     }
+
+    pub fn sub(&mut self, value: u8, carry: bool) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let cy = if carry && flags_register.carry { 1 } else { 0 };
+        let result = self.registers.a.wrapping_sub(value).wrapping_sub(cy);
+        flags_register.zero = result == 0;
+        flags_register.subtract = true;
+        flags_register.half_carry =
+          (self.registers.a & 0xf)
+            .wrapping_sub(value & 0xf)
+            .wrapping_sub(cy)
+            & (0xf + 1) != 0;
+        flags_register.carry = (self.registers.a as u16) < (value as u16) + (cy as u16);
+        self.registers.f = u8::from(flags_register);
+        result
+      }
 }

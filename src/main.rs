@@ -196,6 +196,26 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x8E => { cpu.addc_8bit(cpu.ram[cpu.registers.get_hl() as usize]); }
       0x8F => { cpu.addc_8bit(cpu.registers.a); }
       /* END 8BIT ADDC */
+      /* START 8BIT SUB */
+      0x90 => { cpu.registers.a = cpu.sub(cpu.registers.b, false) }
+      0x91 => { cpu.registers.a = cpu.sub(cpu.registers.c, false) }
+      0x92 => { cpu.registers.a = cpu.sub(cpu.registers.d, false) }
+      0x93 => { cpu.registers.a = cpu.sub(cpu.registers.e, false) }
+      0x94 => { cpu.registers.a = cpu.sub(cpu.registers.h, false) }
+      0x95 => { cpu.registers.a = cpu.sub(cpu.registers.l, false) }
+      0x96 => { cpu.registers.a = cpu.sub(cpu.ram[cpu.registers.get_hl() as usize], false) }
+      0x97 => { cpu.registers.a = cpu.sub(cpu.registers.a, false) }
+      /* END 8BIT SUB */
+      /* START 8BIT SBC */
+      0x98 => { cpu.registers.a = cpu.sub(cpu.registers.b, true) }
+      0x99 => { cpu.registers.a = cpu.sub(cpu.registers.c, true) }
+      0x9A => { cpu.registers.a = cpu.sub(cpu.registers.d, true) }
+      0x9B => { cpu.registers.a = cpu.sub(cpu.registers.e, true) }
+      0x9C => { cpu.registers.a = cpu.sub(cpu.registers.h, true) }
+      0x9D => { cpu.registers.a = cpu.sub(cpu.registers.l, true) }
+      0x9E => { cpu.registers.a = cpu.sub(cpu.ram[cpu.registers.get_hl() as usize], true) }
+      0x9F => { cpu.registers.a = cpu.sub(cpu.registers.a, true) }
+      /* END 8BIT SBC */
       /* START JUMP OPCODES */
       0xC2 => {
         if !FlagsRegister::from(cpu.registers.f).zero {
