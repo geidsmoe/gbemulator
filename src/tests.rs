@@ -281,14 +281,14 @@ mod tests {
     opcode_test!(test_85_add_a_l, "85");
     opcode_test!(test_86_add_a_hl, "86");
     opcode_test!(test_87_add_a_a, "87");
-    opcode_test!(test_88_adc_a_b, "88", ignore);
-    opcode_test!(test_89_adc_a_c, "89", ignore);
-    opcode_test!(test_8a_adc_a_d, "8a", ignore);
-    opcode_test!(test_8b_adc_a_e, "8b", ignore);
-    opcode_test!(test_8c_adc_a_h, "8c", ignore);
-    opcode_test!(test_8d_adc_a_l, "8d", ignore);
-    opcode_test!(test_8e_adc_a_hl, "8e", ignore);
-    opcode_test!(test_8f_adc_a_a, "8f", ignore);
+    opcode_test!(test_88_adc_a_b, "88");
+    opcode_test!(test_89_adc_a_c, "89");
+    opcode_test!(test_8a_adc_a_d, "8a");
+    opcode_test!(test_8b_adc_a_e, "8b");
+    opcode_test!(test_8c_adc_a_h, "8c");
+    opcode_test!(test_8d_adc_a_l, "8d");
+    opcode_test!(test_8e_adc_a_hl, "8e");
+    opcode_test!(test_8f_adc_a_a, "8f");
 
     // 0x90 - 0x9F (SUB/SBC A, r)
     opcode_test!(test_90_sub_b, "90", ignore);

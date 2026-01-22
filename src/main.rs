@@ -186,6 +186,16 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x86 => { cpu.add_8bit(cpu.ram[cpu.registers.get_hl() as usize]); }
       0x87 => { cpu.add_8bit(cpu.registers.a); }
       /* END 8BIT ADD */
+      /* START 8BIT ADDC */
+      0x88 => { cpu.addc_8bit(cpu.registers.b); }
+      0x89 => { cpu.addc_8bit(cpu.registers.c); }
+      0x8A => { cpu.addc_8bit(cpu.registers.d); }
+      0x8B => { cpu.addc_8bit(cpu.registers.e); }
+      0x8C => { cpu.addc_8bit(cpu.registers.h); }
+      0x8D => { cpu.addc_8bit(cpu.registers.l); }
+      0x8E => { cpu.addc_8bit(cpu.ram[cpu.registers.get_hl() as usize]); }
+      0x8F => { cpu.addc_8bit(cpu.registers.a); }
+      /* END 8BIT ADDC */
       /* START JUMP OPCODES */
       0xC2 => {
         if !FlagsRegister::from(cpu.registers.f).zero {

@@ -52,4 +52,16 @@ impl CPU {
         self.registers.f = u8::from(flags_register);
         self.registers.a = result;
     }
+
+    pub fn addc_8bit(&mut self, value: u8) {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let carry_value: u8 = if flags_register.carry { 1 } else { 0 };
+        let result = self.registers.a.wrapping_add(value).wrapping_add(carry_value);
+        flags_register.zero = result == 0;
+        flags_register.subtract = false;
+        flags_register.half_carry = (self.registers.a & 0xf) + (value & 0xf) + carry_value > 0xf;
+        flags_register.carry = self.registers.a as u16 + value as u16 + carry_value as u16 > 0xff;
+        self.registers.f = u8::from(flags_register);
+        self.registers.a = result;
+    }
 }
