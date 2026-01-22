@@ -274,13 +274,13 @@ mod tests {
 
     // 0x80 - 0x8F (ADD/ADC A, r)
     opcode_test!(test_80_add_a_b, "80");
-    opcode_test!(test_81_add_a_c, "81", ignore);
-    opcode_test!(test_82_add_a_d, "82", ignore);
-    opcode_test!(test_83_add_a_e, "83", ignore);
-    opcode_test!(test_84_add_a_h, "84", ignore);
-    opcode_test!(test_85_add_a_l, "85", ignore);
-    opcode_test!(test_86_add_a_hl, "86", ignore);
-    opcode_test!(test_87_add_a_a, "87", ignore);
+    opcode_test!(test_81_add_a_c, "81");
+    opcode_test!(test_82_add_a_d, "82");
+    opcode_test!(test_83_add_a_e, "83");
+    opcode_test!(test_84_add_a_h, "84");
+    opcode_test!(test_85_add_a_l, "85");
+    opcode_test!(test_86_add_a_hl, "86");
+    opcode_test!(test_87_add_a_a, "87");
     opcode_test!(test_88_adc_a_b, "88", ignore);
     opcode_test!(test_89_adc_a_c, "89", ignore);
     opcode_test!(test_8a_adc_a_d, "8a", ignore);

@@ -177,18 +177,14 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x7F => { /* LD reg into itself is no op */ }
       /* END LOAD OPCODES */
       /* START 8BIT ADD */
-      0x80 => {
-        let value =   cpu.registers.b;
-        let mut flags_register = FlagsRegister::from(cpu.registers.f);
-        let (result, carry) = cpu.registers.a.overflowing_add(cpu.registers.b);
-        let half_carry = (cpu.registers.a & 0x0f).checked_add(value | 0xf0).is_none();
-        flags_register.carry = carry;
-        flags_register.zero = result == 0;
-        flags_register.half_carry = half_carry;
-        flags_register.subtract = false;
-        cpu.registers.f = u8::from(flags_register);
-        cpu.registers.a = result;
-      }
+      0x80 => { cpu.add_8bit(cpu.registers.b); }
+      0x81 => { cpu.add_8bit(cpu.registers.c); }
+      0x82 => { cpu.add_8bit(cpu.registers.d); }
+      0x83 => { cpu.add_8bit(cpu.registers.e); }
+      0x84 => { cpu.add_8bit(cpu.registers.h); }
+      0x85 => { cpu.add_8bit(cpu.registers.l); }
+      0x86 => { cpu.add_8bit(cpu.ram[cpu.registers.get_hl() as usize]); }
+      0x87 => { cpu.add_8bit(cpu.registers.a); }
       /* END 8BIT ADD */
       /* START JUMP OPCODES */
       0xC2 => {
