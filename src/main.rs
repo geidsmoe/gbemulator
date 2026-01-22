@@ -150,10 +150,105 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.pc = cpu.pc.wrapping_add(2);
       }
       0x0A => { cpu.registers.a = cpu.ram[cpu.registers.get_bc() as usize] }
+      0x1A => { cpu.registers.a = cpu.ram[cpu.registers.get_de() as usize] }
+      0x2A => { 
+        let hl_value = cpu.registers.get_hl();
+        cpu.registers.a = cpu.ram[hl_value as usize];
+        cpu.registers.set_hl(hl_value + 1);
+      }
+      0x3A => { 
+        let hl_value = cpu.registers.get_hl();
+        cpu.registers.a = cpu.ram[hl_value as usize];
+        cpu.registers.set_hl(hl_value - 1);
+      }
       0x0E => { 
         cpu.registers.c = cpu.ram[cpu.pc as usize];
         cpu.pc = cpu.pc.wrapping_add(1);
       }
+      0x1E => { 
+        cpu.registers.e = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x2E => { 
+        cpu.registers.l = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x3E => {
+        cpu.registers.a = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      /* LD B, r */
+      0x40 => { /* LD reg into itself is no op */ }
+      0x41 => { cpu.registers.b = cpu.registers.c; }
+      0x42 => { cpu.registers.b = cpu.registers.d; }
+      0x43 => { cpu.registers.b = cpu.registers.e; }
+      0x44 => { cpu.registers.b = cpu.registers.h; }
+      0x45 => { cpu.registers.b = cpu.registers.l; }
+      0x46 => { cpu.registers.b = cpu.ram[cpu.registers.get_hl() as usize]; }
+      0x47 => { cpu.registers.b = cpu.registers.a; }
+      /* LD C, r */
+      0x48 => { cpu.registers.c = cpu.registers.b; }
+      0x49 => { /* LD reg into itself is no op */ }
+      0x4A => { cpu.registers.c = cpu.registers.d; }
+      0x4B => { cpu.registers.c = cpu.registers.e; }
+      0x4C => { cpu.registers.c = cpu.registers.h; }
+      0x4D => { cpu.registers.c = cpu.registers.l; }
+      0x4E => { cpu.registers.c = cpu.ram[cpu.registers.get_hl() as usize]; }
+      0x4F => { cpu.registers.c = cpu.registers.a; }
+      /* LD D, r */
+      0x50 => { cpu.registers.d = cpu.registers.b; }
+      0x51 => { cpu.registers.d = cpu.registers.c; }
+      0x52 => { /* LD reg into itself is no op */ }
+      0x53 => { cpu.registers.d = cpu.registers.e; }
+      0x54 => { cpu.registers.d = cpu.registers.h; }
+      0x55 => { cpu.registers.d = cpu.registers.l; }
+      0x56 => { cpu.registers.d = cpu.ram[cpu.registers.get_hl() as usize]; }
+      0x57 => { cpu.registers.d = cpu.registers.a; }
+      /* LD E, r */
+      0x58 => { cpu.registers.e = cpu.registers.b; }
+      0x59 => { cpu.registers.e = cpu.registers.c; }
+      0x5A => { cpu.registers.e = cpu.registers.d; }
+      0x5B => { /* LD reg into itself is no op */ }
+      0x5C => { cpu.registers.e = cpu.registers.h; }
+      0x5D => { cpu.registers.e = cpu.registers.l; }
+      0x5E => { cpu.registers.e = cpu.ram[cpu.registers.get_hl() as usize]; }
+      0x5F => { cpu.registers.e = cpu.registers.a; }
+      /* LD H, r */
+      0x60 => { cpu.registers.h = cpu.registers.b; }
+      0x61 => { cpu.registers.h = cpu.registers.c; }
+      0x62 => { cpu.registers.h = cpu.registers.d; }
+      0x63 => { cpu.registers.h = cpu.registers.e; }
+      0x64 => { /* LD reg into itself is no op */ }
+      0x65 => { cpu.registers.h = cpu.registers.l; }
+      0x66 => { cpu.registers.h = cpu.ram[cpu.registers.get_hl() as usize]; }
+      0x67 => { cpu.registers.h = cpu.registers.a; }
+      /* LD L, r */
+      0x68 => { cpu.registers.l = cpu.registers.b; }
+      0x69 => { cpu.registers.l = cpu.registers.c; }
+      0x6A => { cpu.registers.l = cpu.registers.d; }
+      0x6B => { cpu.registers.l = cpu.registers.e; }
+      0x6C => { cpu.registers.l = cpu.registers.h; }
+      0x6D => { /* LD reg into itself is no op */ }
+      0x6E => { cpu.registers.l = cpu.ram[cpu.registers.get_hl() as usize]; }
+      0x6F => { cpu.registers.l = cpu.registers.a; }
+      /* LD (HL), r */
+      0x70 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.b; }
+      0x71 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.c; }
+      0x72 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.d; }
+      0x73 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.e; }
+      0x74 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.h; }
+      0x75 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.l; }
+      0x76 => { /* HALT - TODO: implement properly */ }
+      0x77 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.a; }
+      /* LD A, r */
+      0x78 => { cpu.registers.a = cpu.registers.b; }
+      0x79 => { cpu.registers.a = cpu.registers.c; }
+      0x7A => { cpu.registers.a = cpu.registers.d; }
+      0x7B => { cpu.registers.a = cpu.registers.e; }
+      0x7C => { cpu.registers.a = cpu.registers.h; }
+      0x7D => { cpu.registers.a = cpu.registers.l; }
+      0x7E => { cpu.registers.a = cpu.ram[cpu.registers.get_hl() as usize]; }
+      0x7F => { /* LD reg into itself is no op */ }
       /* END LOAD OPCODES */
       /* START JUMP OPCODES */
       0xC2 => {
