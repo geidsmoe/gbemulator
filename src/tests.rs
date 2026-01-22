@@ -71,23 +71,23 @@ mod tests {
         for ram_entry in &expected.ram {
             let address = ram_entry[0] as usize;
             let expected_value = ram_entry[1] as u8;
+            let actual_value = cpu.ram[address];
             assert_eq!(
-                cpu.ram[address], expected_value,
+                actual_value, expected_value,
                 "{}: RAM mismatch at address {:#06X}",
                 test_name, address
             );
         }
     }
 
-    #[test]
-    fn test_nop_00() {
-        let json_content = fs::read_to_string("fixtures/00.json")
-            .expect("Failed to read fixtures/00.json");
+    fn run_test_for_opcode(fixture: &str) {
+        let json_content = fs::read_to_string(format!("fixtures/{}.json", fixture))
+            .expect(&format!("Failed to read fixtures/{}.json", fixture));
         let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/00.json");
+            .expect(&format!("Failed to parse fixtures/{}.json", fixture));
 
         let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
+            .expect("Failed to read opcodes.json");
         let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
             .expect("Failed to parse opcodes.json");
 
@@ -98,307 +98,299 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_jp_nz_c2() {
-        let json_content = fs::read_to_string("fixtures/c2.json")
-            .expect("Failed to read fixtures/c2.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/c2.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
+    // Macro for generating opcode tests
+    macro_rules! opcode_test {
+        ($name:ident, $fixture:expr) => {
+            #[test]
+            fn $name() {
+                run_test_for_opcode($fixture);
+            }
+        };
+        ($name:ident, $fixture:expr, ignore) => {
+            #[test]
+            #[ignore]
+            fn $name() {
+                run_test_for_opcode($fixture);
+            }
+        };
     }
 
-    #[test]
-    fn test_jp_c3() {
-        let json_content = fs::read_to_string("fixtures/c3.json")
-            .expect("Failed to read fixtures/c3.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/c3.json");
+    // ==================== IMPLEMENTED OPCODES ====================
+    opcode_test!(test_00_nop, "00");
+    opcode_test!(test_01_ld_bc_d16, "01");
+    opcode_test!(test_02_ld_bc_a, "02");
+    opcode_test!(test_c0_ret_nz, "c0");
+    opcode_test!(test_c2_jp_nz_a16, "c2");
+    opcode_test!(test_c3_jp_a16, "c3");
+    opcode_test!(test_c4_call_nz_a16, "c4");
+    opcode_test!(test_c8_ret_z, "c8");
+    opcode_test!(test_c9_ret, "c9");
+    opcode_test!(test_ca_jp_z_a16, "ca");
+    opcode_test!(test_cc_call_z_a16, "cc");
+    opcode_test!(test_cd_call_a16, "cd");
+    opcode_test!(test_d0_ret_nc, "d0");
+    opcode_test!(test_d2_jp_nc_a16, "d2");
+    opcode_test!(test_d4_call_nc_a16, "d4");
+    opcode_test!(test_d8_ret_c, "d8");
+    opcode_test!(test_da_jp_c_a16, "da");
+    opcode_test!(test_dc_call_c_a16, "dc");
+    opcode_test!(test_e9_jp_hl, "e9");
+    opcode_test!(test_08_ld_a16_sp, "08");
+    opcode_test!(test_0a_ld_a_bc, "0a");
+    opcode_test!(test_11_ld_de_d16, "11");
+    opcode_test!(test_21_ld_hl_d16, "21");
+    opcode_test!(test_31_ld_sp_d16, "31");
 
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
+    // ==================== UNIMPLEMENTED OPCODES ====================
+    // 0x03 - 0x0F
+    opcode_test!(test_03_inc_bc, "03", ignore);
+    opcode_test!(test_04_inc_b, "04", ignore);
+    opcode_test!(test_05_dec_b, "05", ignore);
+    opcode_test!(test_06_ld_b_d8, "06", ignore);
+    opcode_test!(test_07_rlca, "07", ignore);
+    opcode_test!(test_09_add_hl_bc, "09", ignore);
+    opcode_test!(test_0b_dec_bc, "0b", ignore);
+    opcode_test!(test_0c_inc_c, "0c", ignore);
+    opcode_test!(test_0d_dec_c, "0d", ignore);
+    opcode_test!(test_0e_ld_c_d8, "0e", ignore);
+    opcode_test!(test_0f_rrca, "0f", ignore);
+    // 0x10 - 0x1F
+    opcode_test!(test_10_stop, "10", ignore);
+    opcode_test!(test_12_ld_de_a, "12", ignore);
+    opcode_test!(test_13_inc_de, "13", ignore);
+    opcode_test!(test_14_inc_d, "14", ignore);
+    opcode_test!(test_15_dec_d, "15", ignore);
+    opcode_test!(test_16_ld_d_d8, "16", ignore);
+    opcode_test!(test_17_rla, "17", ignore);
+    opcode_test!(test_18_jr_r8, "18", ignore);
+    opcode_test!(test_19_add_hl_de, "19", ignore);
+    opcode_test!(test_1a_ld_a_de, "1a", ignore);
+    opcode_test!(test_1b_dec_de, "1b", ignore);
+    opcode_test!(test_1c_inc_e, "1c", ignore);
+    opcode_test!(test_1d_dec_e, "1d", ignore);
+    opcode_test!(test_1e_ld_e_d8, "1e", ignore);
+    opcode_test!(test_1f_rra, "1f", ignore);
 
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
+    // 0x20 - 0x2F
+    opcode_test!(test_20_jr_nz_r8, "20", ignore);
+    
+    opcode_test!(test_22_ld_hli_a, "22", ignore);
+    opcode_test!(test_23_inc_hl, "23", ignore);
+    opcode_test!(test_24_inc_h, "24", ignore);
+    opcode_test!(test_25_dec_h, "25", ignore);
+    opcode_test!(test_26_ld_h_d8, "26", ignore);
+    opcode_test!(test_27_daa, "27", ignore);
+    opcode_test!(test_28_jr_z_r8, "28", ignore);
+    opcode_test!(test_29_add_hl_hl, "29", ignore);
+    opcode_test!(test_2a_ld_a_hli, "2a", ignore);
+    opcode_test!(test_2b_dec_hl, "2b", ignore);
+    opcode_test!(test_2c_inc_l, "2c", ignore);
+    opcode_test!(test_2d_dec_l, "2d", ignore);
+    opcode_test!(test_2e_ld_l_d8, "2e", ignore);
+    opcode_test!(test_2f_cpl, "2f", ignore);
 
-    #[test]
-    fn test_jp_z_ca() {
-        let json_content = fs::read_to_string("fixtures/ca.json")
-            .expect("Failed to read fixtures/ca.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/ca.json");
+    // 0x30 - 0x3F
+    opcode_test!(test_30_jr_nc_r8, "30", ignore);
+    opcode_test!(test_32_ld_hld_a, "32", ignore);
+    opcode_test!(test_33_inc_sp, "33", ignore);
+    opcode_test!(test_34_inc_hl_ind, "34", ignore);
+    opcode_test!(test_35_dec_hl_ind, "35", ignore);
+    opcode_test!(test_36_ld_hl_d8, "36", ignore);
+    opcode_test!(test_37_scf, "37", ignore);
+    opcode_test!(test_38_jr_c_r8, "38", ignore);
+    opcode_test!(test_39_add_hl_sp, "39", ignore);
+    opcode_test!(test_3a_ld_a_hld, "3a", ignore);
+    opcode_test!(test_3b_dec_sp, "3b", ignore);
+    opcode_test!(test_3c_inc_a, "3c", ignore);
+    opcode_test!(test_3d_dec_a, "3d", ignore);
+    opcode_test!(test_3e_ld_a_d8, "3e", ignore);
+    opcode_test!(test_3f_ccf, "3f", ignore);
 
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
+    // 0x40 - 0x4F (LD B/C, r)
+    opcode_test!(test_40_ld_b_b, "40", ignore);
+    opcode_test!(test_41_ld_b_c, "41", ignore);
+    opcode_test!(test_42_ld_b_d, "42", ignore);
+    opcode_test!(test_43_ld_b_e, "43", ignore);
+    opcode_test!(test_44_ld_b_h, "44", ignore);
+    opcode_test!(test_45_ld_b_l, "45", ignore);
+    opcode_test!(test_46_ld_b_hl, "46", ignore);
+    opcode_test!(test_47_ld_b_a, "47", ignore);
+    opcode_test!(test_48_ld_c_b, "48", ignore);
+    opcode_test!(test_49_ld_c_c, "49", ignore);
+    opcode_test!(test_4a_ld_c_d, "4a", ignore);
+    opcode_test!(test_4b_ld_c_e, "4b", ignore);
+    opcode_test!(test_4c_ld_c_h, "4c", ignore);
+    opcode_test!(test_4d_ld_c_l, "4d", ignore);
+    opcode_test!(test_4e_ld_c_hl, "4e", ignore);
+    opcode_test!(test_4f_ld_c_a, "4f", ignore);
 
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
+    // 0x50 - 0x5F (LD D/E, r)
+    opcode_test!(test_50_ld_d_b, "50", ignore);
+    opcode_test!(test_51_ld_d_c, "51", ignore);
+    opcode_test!(test_52_ld_d_d, "52", ignore);
+    opcode_test!(test_53_ld_d_e, "53", ignore);
+    opcode_test!(test_54_ld_d_h, "54", ignore);
+    opcode_test!(test_55_ld_d_l, "55", ignore);
+    opcode_test!(test_56_ld_d_hl, "56", ignore);
+    opcode_test!(test_57_ld_d_a, "57", ignore);
+    opcode_test!(test_58_ld_e_b, "58", ignore);
+    opcode_test!(test_59_ld_e_c, "59", ignore);
+    opcode_test!(test_5a_ld_e_d, "5a", ignore);
+    opcode_test!(test_5b_ld_e_e, "5b", ignore);
+    opcode_test!(test_5c_ld_e_h, "5c", ignore);
+    opcode_test!(test_5d_ld_e_l, "5d", ignore);
+    opcode_test!(test_5e_ld_e_hl, "5e", ignore);
+    opcode_test!(test_5f_ld_e_a, "5f", ignore);
 
-    #[test]
-    fn test_jp_nc_d2() {
-        let json_content = fs::read_to_string("fixtures/d2.json")
-            .expect("Failed to read fixtures/d2.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/d2.json");
+    // 0x60 - 0x6F (LD H/L, r)
+    opcode_test!(test_60_ld_h_b, "60", ignore);
+    opcode_test!(test_61_ld_h_c, "61", ignore);
+    opcode_test!(test_62_ld_h_d, "62", ignore);
+    opcode_test!(test_63_ld_h_e, "63", ignore);
+    opcode_test!(test_64_ld_h_h, "64", ignore);
+    opcode_test!(test_65_ld_h_l, "65", ignore);
+    opcode_test!(test_66_ld_h_hl, "66", ignore);
+    opcode_test!(test_67_ld_h_a, "67", ignore);
+    opcode_test!(test_68_ld_l_b, "68", ignore);
+    opcode_test!(test_69_ld_l_c, "69", ignore);
+    opcode_test!(test_6a_ld_l_d, "6a", ignore);
+    opcode_test!(test_6b_ld_l_e, "6b", ignore);
+    opcode_test!(test_6c_ld_l_h, "6c", ignore);
+    opcode_test!(test_6d_ld_l_l, "6d", ignore);
+    opcode_test!(test_6e_ld_l_hl, "6e", ignore);
+    opcode_test!(test_6f_ld_l_a, "6f", ignore);
 
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
+    // 0x70 - 0x7F (LD (HL)/A, r)
+    opcode_test!(test_70_ld_hl_b, "70", ignore);
+    opcode_test!(test_71_ld_hl_c, "71", ignore);
+    opcode_test!(test_72_ld_hl_d, "72", ignore);
+    opcode_test!(test_73_ld_hl_e, "73", ignore);
+    opcode_test!(test_74_ld_hl_h, "74", ignore);
+    opcode_test!(test_75_ld_hl_l, "75", ignore);
+    opcode_test!(test_76_halt, "76", ignore);
+    opcode_test!(test_77_ld_hl_a, "77", ignore);
+    opcode_test!(test_78_ld_a_b, "78", ignore);
+    opcode_test!(test_79_ld_a_c, "79", ignore);
+    opcode_test!(test_7a_ld_a_d, "7a", ignore);
+    opcode_test!(test_7b_ld_a_e, "7b", ignore);
+    opcode_test!(test_7c_ld_a_h, "7c", ignore);
+    opcode_test!(test_7d_ld_a_l, "7d", ignore);
+    opcode_test!(test_7e_ld_a_hl, "7e", ignore);
+    opcode_test!(test_7f_ld_a_a, "7f", ignore);
 
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
+    // 0x80 - 0x8F (ADD/ADC A, r)
+    opcode_test!(test_80_add_a_b, "80", ignore);
+    opcode_test!(test_81_add_a_c, "81", ignore);
+    opcode_test!(test_82_add_a_d, "82", ignore);
+    opcode_test!(test_83_add_a_e, "83", ignore);
+    opcode_test!(test_84_add_a_h, "84", ignore);
+    opcode_test!(test_85_add_a_l, "85", ignore);
+    opcode_test!(test_86_add_a_hl, "86", ignore);
+    opcode_test!(test_87_add_a_a, "87", ignore);
+    opcode_test!(test_88_adc_a_b, "88", ignore);
+    opcode_test!(test_89_adc_a_c, "89", ignore);
+    opcode_test!(test_8a_adc_a_d, "8a", ignore);
+    opcode_test!(test_8b_adc_a_e, "8b", ignore);
+    opcode_test!(test_8c_adc_a_h, "8c", ignore);
+    opcode_test!(test_8d_adc_a_l, "8d", ignore);
+    opcode_test!(test_8e_adc_a_hl, "8e", ignore);
+    opcode_test!(test_8f_adc_a_a, "8f", ignore);
 
-    #[test]
-    fn test_jp_c_da() {
-        let json_content = fs::read_to_string("fixtures/da.json")
-            .expect("Failed to read fixtures/da.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/da.json");
+    // 0x90 - 0x9F (SUB/SBC A, r)
+    opcode_test!(test_90_sub_b, "90", ignore);
+    opcode_test!(test_91_sub_c, "91", ignore);
+    opcode_test!(test_92_sub_d, "92", ignore);
+    opcode_test!(test_93_sub_e, "93", ignore);
+    opcode_test!(test_94_sub_h, "94", ignore);
+    opcode_test!(test_95_sub_l, "95", ignore);
+    opcode_test!(test_96_sub_hl, "96", ignore);
+    opcode_test!(test_97_sub_a, "97", ignore);
+    opcode_test!(test_98_sbc_a_b, "98", ignore);
+    opcode_test!(test_99_sbc_a_c, "99", ignore);
+    opcode_test!(test_9a_sbc_a_d, "9a", ignore);
+    opcode_test!(test_9b_sbc_a_e, "9b", ignore);
+    opcode_test!(test_9c_sbc_a_h, "9c", ignore);
+    opcode_test!(test_9d_sbc_a_l, "9d", ignore);
+    opcode_test!(test_9e_sbc_a_hl, "9e", ignore);
+    opcode_test!(test_9f_sbc_a_a, "9f", ignore);
 
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
+    // 0xA0 - 0xAF (AND/XOR A, r)
+    opcode_test!(test_a0_and_b, "a0", ignore);
+    opcode_test!(test_a1_and_c, "a1", ignore);
+    opcode_test!(test_a2_and_d, "a2", ignore);
+    opcode_test!(test_a3_and_e, "a3", ignore);
+    opcode_test!(test_a4_and_h, "a4", ignore);
+    opcode_test!(test_a5_and_l, "a5", ignore);
+    opcode_test!(test_a6_and_hl, "a6", ignore);
+    opcode_test!(test_a7_and_a, "a7", ignore);
+    opcode_test!(test_a8_xor_b, "a8", ignore);
+    opcode_test!(test_a9_xor_c, "a9", ignore);
+    opcode_test!(test_aa_xor_d, "aa", ignore);
+    opcode_test!(test_ab_xor_e, "ab", ignore);
+    opcode_test!(test_ac_xor_h, "ac", ignore);
+    opcode_test!(test_ad_xor_l, "ad", ignore);
+    opcode_test!(test_ae_xor_hl, "ae", ignore);
+    opcode_test!(test_af_xor_a, "af", ignore);
 
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
+    // 0xB0 - 0xBF (OR/CP A, r)
+    opcode_test!(test_b0_or_b, "b0", ignore);
+    opcode_test!(test_b1_or_c, "b1", ignore);
+    opcode_test!(test_b2_or_d, "b2", ignore);
+    opcode_test!(test_b3_or_e, "b3", ignore);
+    opcode_test!(test_b4_or_h, "b4", ignore);
+    opcode_test!(test_b5_or_l, "b5", ignore);
+    opcode_test!(test_b6_or_hl, "b6", ignore);
+    opcode_test!(test_b7_or_a, "b7", ignore);
+    opcode_test!(test_b8_cp_b, "b8", ignore);
+    opcode_test!(test_b9_cp_c, "b9", ignore);
+    opcode_test!(test_ba_cp_d, "ba", ignore);
+    opcode_test!(test_bb_cp_e, "bb", ignore);
+    opcode_test!(test_bc_cp_h, "bc", ignore);
+    opcode_test!(test_bd_cp_l, "bd", ignore);
+    opcode_test!(test_be_cp_hl, "be", ignore);
+    opcode_test!(test_bf_cp_a, "bf", ignore);
 
-    #[test]
-    fn test_jp_hl_e9() {
-        let json_content = fs::read_to_string("fixtures/e9.json")
-            .expect("Failed to read fixtures/e9.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/e9.json");
+    // 0xC1, 0xC5-0xC7, 0xCE-0xCF
+    opcode_test!(test_c1_pop_bc, "c1", ignore);
+    opcode_test!(test_c5_push_bc, "c5", ignore);
+    opcode_test!(test_c6_add_a_d8, "c6", ignore);
+    opcode_test!(test_c7_rst_00h, "c7", ignore);
+    opcode_test!(test_ce_adc_a_d8, "ce", ignore);
+    opcode_test!(test_cf_rst_08h, "cf", ignore);
 
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
+    // 0xD1, 0xD5-0xD7, 0xD9, 0xDE-0xDF
+    opcode_test!(test_d1_pop_de, "d1", ignore);
+    opcode_test!(test_d5_push_de, "d5", ignore);
+    opcode_test!(test_d6_sub_d8, "d6", ignore);
+    opcode_test!(test_d7_rst_10h, "d7", ignore);
+    opcode_test!(test_d9_reti, "d9", ignore);
+    opcode_test!(test_de_sbc_a_d8, "de", ignore);
+    opcode_test!(test_df_rst_18h, "df", ignore);
 
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
+    // 0xE0-0xE2, 0xE5-0xE8, 0xEA, 0xEE-0xEF
+    opcode_test!(test_e0_ldh_a8_a, "e0", ignore);
+    opcode_test!(test_e1_pop_hl, "e1", ignore);
+    opcode_test!(test_e2_ld_c_a, "e2", ignore);
+    opcode_test!(test_e5_push_hl, "e5", ignore);
+    opcode_test!(test_e6_and_d8, "e6", ignore);
+    opcode_test!(test_e7_rst_20h, "e7", ignore);
+    opcode_test!(test_e8_add_sp_r8, "e8", ignore);
+    opcode_test!(test_ea_ld_a16_a, "ea", ignore);
+    opcode_test!(test_ee_xor_d8, "ee", ignore);
+    opcode_test!(test_ef_rst_28h, "ef", ignore);
 
-    #[test]
-    fn test_ret_nz_c0() {
-        let json_content = fs::read_to_string("fixtures/c0.json")
-            .expect("Failed to read fixtures/c0.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/c0.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_call_nz_c4() {
-        let json_content = fs::read_to_string("fixtures/c4.json")
-            .expect("Failed to read fixtures/c4.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/c4.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_ret_z_c8() {
-        let json_content = fs::read_to_string("fixtures/c8.json")
-            .expect("Failed to read fixtures/c8.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/c8.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_ret_c9() {
-        let json_content = fs::read_to_string("fixtures/c9.json")
-            .expect("Failed to read fixtures/c9.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/c9.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_call_z_cc() {
-        let json_content = fs::read_to_string("fixtures/cc.json")
-            .expect("Failed to read fixtures/cc.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/cc.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_call_cd() {
-        let json_content = fs::read_to_string("fixtures/cd.json")
-            .expect("Failed to read fixtures/cd.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/cd.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_ret_nc_d0() {
-        let json_content = fs::read_to_string("fixtures/d0.json")
-            .expect("Failed to read fixtures/d0.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/d0.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_call_nc_d4() {
-        let json_content = fs::read_to_string("fixtures/d4.json")
-            .expect("Failed to read fixtures/d4.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/d4.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_ret_c_d8() {
-        let json_content = fs::read_to_string("fixtures/d8.json")
-            .expect("Failed to read fixtures/d8.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/d8.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
-
-    #[test]
-    fn test_call_c_dc() {
-        let json_content = fs::read_to_string("fixtures/dc.json")
-            .expect("Failed to read fixtures/dc.json");
-        let test_cases: Vec<TestCase> = serde_json::from_str(&json_content)
-            .expect("Failed to parse fixtures/dc.json");
-
-        let opcodes_json = fs::read_to_string("opcodes.json")
-            .expect("Failed to parse opcodes.json");
-        let instruction_set: InstructionSet = serde_json::from_str(&opcodes_json)
-            .expect("Failed to parse opcodes.json");
-
-        for test_case in test_cases {
-            let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
-            verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
-        }
-    }
+    // 0xF0-0xF3, 0xF5-0xFB, 0xFE-0xFF
+    opcode_test!(test_f0_ldh_a_a8, "f0", ignore);
+    opcode_test!(test_f1_pop_af, "f1", ignore);
+    opcode_test!(test_f2_ld_a_c, "f2", ignore);
+    opcode_test!(test_f3_di, "f3", ignore);
+    opcode_test!(test_f5_push_af, "f5", ignore);
+    opcode_test!(test_f6_or_d8, "f6", ignore);
+    opcode_test!(test_f7_rst_30h, "f7", ignore);
+    opcode_test!(test_f8_ld_hl_sp_r8, "f8", ignore);
+    opcode_test!(test_f9_ld_sp_hl, "f9", ignore);
+    opcode_test!(test_fa_ld_a_a16, "fa", ignore);
+    opcode_test!(test_fb_ei, "fb", ignore);
+    opcode_test!(test_fe_cp_d8, "fe", ignore);
+    opcode_test!(test_ff_rst_38h, "ff", ignore);
 }

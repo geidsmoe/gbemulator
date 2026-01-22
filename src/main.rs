@@ -39,6 +39,16 @@ impl CPU {
     self.ram[(self.sp - 2) as usize] = lsb;
     self.sp -= 2;
   }
+
+  pub fn read_u16_at(&self, addr: u16) -> u16 {
+    let lsb = self.ram[addr as usize];
+    let msb = self.ram[(addr + 1) as usize];
+    two_bytes_to_u16(lsb, msb)
+  }
+
+  pub fn read_u16_at_pc(&self) -> u16 {
+    self.read_u16_at(self.pc)
+  }
 }
 
 use serde::{Deserialize, Serialize};
@@ -75,64 +85,79 @@ pub struct InstructionSet {
     cbprefixed: HashMap<String, Instruction>
 }
 
-fn jump(opcode: u8, instruction_set: &InstructionSet, cpu: &CPU) -> u16 {
-  let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
-  println!("{:#04X} {:#04X}: {} {:#?} JP A16", cpu.pc, opcode, instruction.mnemonic, instruction.operands);
-  let lsb = cpu.ram[cpu.pc as usize];
-  let msb = cpu.ram[(cpu.pc + 1) as usize];
-  let next_address: u16 = two_bytes_to_u16(lsb, msb);
-  println!("{:#04X} = {:#04X} | {:#04X}", next_address, msb, lsb);
-  return next_address;
-}
-
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
   let opcode = cpu.ram[cpu.pc as usize];
-    cpu.pc += 1;
+    cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
     match opcode  {
       0x00 => {
         //println!("{:#04X}: NOP", opcode);
       }
-      0xCB => {
-        let opcode = cpu.ram[cpu.pc as usize];
-        cpu.pc += 1;
-        let instruction = &instruction_set.cbprefixed[&format!("{:#04X}", opcode)];
-        for operand in &instruction.operands {
-          if operand.bytes.is_some() {
-            cpu.pc += operand.bytes.unwrap() as u16;
-          }
-        }
-        println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
+      /* START LOAD OPCODES */
+      0x01 => {
+        cpu.registers.set_bc(cpu.read_u16_at_pc());
+        cpu.pc = cpu.pc.wrapping_add(2);
       }
+      0x11 => {
+        cpu.registers.set_de(cpu.read_u16_at_pc());
+        cpu.pc = cpu.pc.wrapping_add(2);
+      }
+      0x21 => {
+        cpu.registers.set_hl(cpu.read_u16_at_pc());
+        cpu.pc = cpu.pc.wrapping_add(2);
+      }
+      0x31 => {
+        cpu.sp = cpu.read_u16_at_pc();
+        cpu.pc = cpu.pc.wrapping_add(2)
+      }
+      0x02 => {
+        cpu.ram[cpu.registers.get_bc() as usize] = cpu.registers.a; 
+      }
+      0x06 => {
+        cpu.registers.b = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x08 => {
+        let addr = cpu.read_u16_at_pc();
+        cpu.ram[addr as usize] = (cpu.sp & 0xFF) as u8;
+        cpu.ram[(addr + 1) as usize] = (cpu.sp >> 8) as u8;
+        cpu.pc = cpu.pc.wrapping_add(2);
+      }
+      0x0A => { cpu.registers.a = cpu.ram[cpu.registers.get_bc() as usize] }
+      0x0E => { 
+        cpu.registers.c = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      /* END LOAD OPCODES */
       /* START JUMP OPCODES */
       0xC2 => {
         if !cpu.flags_register.zero {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
+          cpu.pc = cpu.read_u16_at_pc();
         } else {
-          cpu.pc += 2;
+          cpu.pc = cpu.pc.wrapping_add(2);
         }
       }
       0xC3 => {
-        cpu.pc = jump(opcode, &instruction_set, &cpu);
+        cpu.pc = cpu.read_u16_at_pc();
       }
       0xCA => {
         if cpu.flags_register.zero {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
+          cpu.pc = cpu.read_u16_at_pc();
         } else {
-          cpu.pc += 2;
+          cpu.pc = cpu.pc.wrapping_add(2);
         }
       }
       0xD2 => {
         if !cpu.flags_register.carry {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
+          cpu.pc = cpu.read_u16_at_pc();
         } else {
-          cpu.pc += 2
+          cpu.pc = cpu.pc.wrapping_add(2)
         }
       }
       0xDA => {
         if cpu.flags_register.carry {
-          cpu.pc = jump(opcode, &instruction_set, &cpu);
+          cpu.pc = cpu.read_u16_at_pc();
         } else {
-          cpu.pc += 2
+          cpu.pc = cpu.pc.wrapping_add(2)
         } 
       }
       0xE9 => {
@@ -235,6 +260,17 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         }
       }
       /* END CALL OPCODES */
+      0xCB => {
+        let opcode = cpu.ram[cpu.pc as usize];
+        cpu.pc += 1;
+        let instruction = &instruction_set.cbprefixed[&format!("{:#04X}", opcode)];
+        for operand in &instruction.operands {
+          if operand.bytes.is_some() {
+            cpu.pc += operand.bytes.unwrap() as u16;
+          }
+        }
+        println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
+      }
       _ => {
         let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
         for operand in &instruction.operands {
