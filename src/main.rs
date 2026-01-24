@@ -54,6 +54,9 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.registers.set_hl(hl_value - 1);
       }
       0x03 => { cpu.inc_r16(Registers16::BC); }
+      0x13 => { cpu.inc_r16(Registers16::DE); }
+      0x23 => { cpu.inc_r16(Registers16::HL); }
+      0x33 => { cpu.sp = cpu.sp.wrapping_add(1) }
       0x06 => {
         cpu.registers.b = cpu.ram[cpu.pc as usize];
         cpu.pc = cpu.pc.wrapping_add(1);
