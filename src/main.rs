@@ -17,7 +17,9 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
     cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
     match opcode  {
       0x00 => { /* NO OP */ }
-      0x10 => { /* TODO IMPLEMENT STOIP */}
+      0x10 => { /* TODO IMPLEMENT STOP */}
+      0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a) }
+      0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a) }
       /* START LOAD OPCODES */
       /* Start direct loads */
       0x01 => {
@@ -53,10 +55,6 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.ram[hl_value as usize] = cpu.registers.a;
         cpu.registers.set_hl(hl_value - 1);
       }
-      0x03 => { cpu.inc_r16(Registers16::BC); }
-      0x13 => { cpu.inc_r16(Registers16::DE); }
-      0x23 => { cpu.inc_r16(Registers16::HL); }
-      0x33 => { cpu.sp = cpu.sp.wrapping_add(1) }
       0x06 => {
         cpu.registers.b = cpu.ram[cpu.pc as usize];
         cpu.pc = cpu.pc.wrapping_add(1);
@@ -180,6 +178,44 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x7E => { cpu.registers.a = cpu.ram[cpu.registers.get_hl() as usize]; }
       0x7F => { /* LD reg into itself is no op */ }
       /* END LOAD OPCODES */
+      /* START 16-BIT INC */
+      0x03 => { cpu.inc_r16(Registers16::BC); }
+      0x13 => { cpu.inc_r16(Registers16::DE); }
+      0x23 => { cpu.inc_r16(Registers16::HL); }
+      0x33 => { cpu.sp = cpu.sp.wrapping_add(1) }
+      /* END 16-BIT INC */
+      /* START 16-BIT DEC */
+      0x0B => { cpu.dec_r16(Registers16::BC); }
+      0x1B => { cpu.dec_r16(Registers16::DE); }
+      0x2B => { cpu.dec_r16(Registers16::HL); }
+      0x3B => { cpu.sp = cpu.sp.wrapping_sub(1) }
+      /* END 16-BIT DEC */
+      /* START 8-BIT INC */
+      0x04 => { cpu.registers.b = cpu.inc_8bit(cpu.registers.b); }
+      0x0C => { cpu.registers.c = cpu.inc_8bit(cpu.registers.c); }
+      0x14 => { cpu.registers.d = cpu.inc_8bit(cpu.registers.d); }
+      0x1C => { cpu.registers.e = cpu.inc_8bit(cpu.registers.e); }
+      0x24 => { cpu.registers.h = cpu.inc_8bit(cpu.registers.h); }
+      0x2C => { cpu.registers.l = cpu.inc_8bit(cpu.registers.l); }
+      0x34 => {
+        let addr = cpu.registers.get_hl() as usize;
+        cpu.ram[addr] = cpu.inc_8bit(cpu.ram[addr]);
+      }
+      0x3C => { cpu.registers.a = cpu.inc_8bit(cpu.registers.a); }
+      /* END 8-BIT INC */
+      /* START 8-BIT DEC */
+      0x05 => { cpu.registers.b = cpu.dec_8bit(cpu.registers.b); }
+      0x0D => { cpu.registers.c = cpu.dec_8bit(cpu.registers.c); }
+      0x15 => { cpu.registers.d = cpu.dec_8bit(cpu.registers.d); }
+      0x1D => { cpu.registers.e = cpu.dec_8bit(cpu.registers.e); }
+      0x25 => { cpu.registers.h = cpu.dec_8bit(cpu.registers.h); }
+      0x2D => { cpu.registers.l = cpu.dec_8bit(cpu.registers.l); }
+      0x35 => {
+        let addr = cpu.registers.get_hl() as usize;
+        cpu.ram[addr] = cpu.dec_8bit(cpu.ram[addr]);
+      }
+      0x3D => { cpu.registers.a = cpu.dec_8bit(cpu.registers.a); }
+      /* END 8-BIT DEC */
       /* START 8BIT ADD */
       0x80 => { cpu.add_8bit(cpu.registers.b); }
       0x81 => { cpu.add_8bit(cpu.registers.c); }
@@ -260,7 +296,6 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0xBE => { cpu.cp(cpu.ram[cpu.registers.get_hl() as usize]) }
       0xBF => { cpu.cp(cpu.registers.a) }
       /* END 8BIT CP */
-
       /* START JUMP OPCODES */
       0xC2 => {
         if !FlagsRegister::from(cpu.registers.f).zero {

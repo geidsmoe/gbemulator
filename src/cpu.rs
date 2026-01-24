@@ -123,4 +123,54 @@ impl CPU {
         let inc = self.registers.get_16_bit_reg(reg).wrapping_add(1);
         self.registers.set_16_bit_reg(reg, inc);
       }
+
+      pub fn dec_r16(&mut self, reg: Registers16) {
+        let dec = self.registers.get_16_bit_reg(reg).wrapping_sub(1);
+        self.registers.set_16_bit_reg(reg, dec);
+      }
+
+      pub fn inc_8bit(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = value.wrapping_add(1);
+        flags_register.zero = result == 0;
+        flags_register.subtract = false;
+        flags_register.half_carry = (value & 0x0f) == 0x0f;
+        // carry flag not affected
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn dec_8bit(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = value.wrapping_sub(1);
+        flags_register.zero = result == 0;
+        flags_register.subtract = true;
+        flags_register.half_carry = (value & 0x0f) == 0x00;
+        // carry flag not affected
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn rotate_left_with_carry(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = value.rotate_left(1);
+        flags_register.zero = false;
+        flags_register.carry = (value & 0x80) != 0;
+        flags_register.half_carry = false;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn rotate_left_through_carry(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let cy = if flags_register.carry { 1 } else { 0 };
+        let result = (value << 1) | cy;
+        flags_register.zero = false;
+        flags_register.carry = (value & 0x80) != 0;
+        flags_register.half_carry = false;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
 }
