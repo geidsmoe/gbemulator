@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 use cpu::{CPU, two_bytes_to_u16};
-use crate::registers::FlagsRegister;
+use crate::registers::{FlagsRegister, Registers16};
 
 use crate::instructions::*;
 
@@ -53,6 +53,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.ram[hl_value as usize] = cpu.registers.a;
         cpu.registers.set_hl(hl_value - 1);
       }
+      0x03 => { cpu.inc_r16(Registers16::BC); }
       0x06 => {
         cpu.registers.b = cpu.ram[cpu.pc as usize];
         cpu.pc = cpu.pc.wrapping_add(1);
@@ -216,6 +217,47 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x9E => { cpu.registers.a = cpu.sub(cpu.ram[cpu.registers.get_hl() as usize], true) }
       0x9F => { cpu.registers.a = cpu.sub(cpu.registers.a, true) }
       /* END 8BIT SBC */
+      /* START 8BIT AND */
+      0xA0 => { cpu.registers.a = cpu.and(cpu.registers.b) }
+      0xA1 => { cpu.registers.a = cpu.and(cpu.registers.c) }
+      0xA2 => { cpu.registers.a = cpu.and(cpu.registers.d) }
+      0xA3 => { cpu.registers.a = cpu.and(cpu.registers.e) }
+      0xA4 => { cpu.registers.a = cpu.and(cpu.registers.h) }
+      0xA5 => { cpu.registers.a = cpu.and(cpu.registers.l) }
+      0xA6 => { cpu.registers.a = cpu.and(cpu.ram[cpu.registers.get_hl() as usize]) }
+      0xA7 => { cpu.registers.a = cpu.and(cpu.registers.a) }
+      /* END 8BIT AND */
+      /* START 8BIT XOR */
+      0xA8 => { cpu.registers.a = cpu.xor(cpu.registers.b) }
+      0xA9 => { cpu.registers.a = cpu.xor(cpu.registers.c) }
+      0xAA => { cpu.registers.a = cpu.xor(cpu.registers.d) }
+      0xAB => { cpu.registers.a = cpu.xor(cpu.registers.e) }
+      0xAC => { cpu.registers.a = cpu.xor(cpu.registers.h) }
+      0xAD => { cpu.registers.a = cpu.xor(cpu.registers.l) }
+      0xAE => { cpu.registers.a = cpu.xor(cpu.ram[cpu.registers.get_hl() as usize]) }
+      0xAF => { cpu.registers.a = cpu.xor(cpu.registers.a) }
+      /* END 8BIT XOR */
+      /* START 8BIT OR */
+      0xB0 => { cpu.registers.a = cpu.or(cpu.registers.b) }
+      0xB1 => { cpu.registers.a = cpu.or(cpu.registers.c) }
+      0xB2 => { cpu.registers.a = cpu.or(cpu.registers.d) }
+      0xB3 => { cpu.registers.a = cpu.or(cpu.registers.e) }
+      0xB4 => { cpu.registers.a = cpu.or(cpu.registers.h) }
+      0xB5 => { cpu.registers.a = cpu.or(cpu.registers.l) }
+      0xB6 => { cpu.registers.a = cpu.or(cpu.ram[cpu.registers.get_hl() as usize]) }
+      0xB7 => { cpu.registers.a = cpu.or(cpu.registers.a) }
+      /* END 8BIT OR */
+      /* START 8BIT CP */
+      0xB8 => { cpu.cp(cpu.registers.b) }
+      0xB9 => { cpu.cp(cpu.registers.c) }
+      0xBA => { cpu.cp(cpu.registers.d) }
+      0xBB => { cpu.cp(cpu.registers.e) }
+      0xBC => { cpu.cp(cpu.registers.h) }
+      0xBD => { cpu.cp(cpu.registers.l) }
+      0xBE => { cpu.cp(cpu.ram[cpu.registers.get_hl() as usize]) }
+      0xBF => { cpu.cp(cpu.registers.a) }
+      /* END 8BIT CP */
+
       /* START JUMP OPCODES */
       0xC2 => {
         if !FlagsRegister::from(cpu.registers.f).zero {

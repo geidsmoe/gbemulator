@@ -221,10 +221,8 @@ mod tests {
     opcode_test!(test_7d_ld_a_l, "7d");
     opcode_test!(test_7e_ld_a_hl, "7e");
     opcode_test!(test_7f_ld_a_a, "7f");
-
-    // ==================== UNIMPLEMENTED OPCODES ====================
     // 0x03 - 0x0F
-    opcode_test!(test_03_inc_bc, "03", ignore);
+    opcode_test!(test_03_inc_bc, "03");
     opcode_test!(test_04_inc_b, "04", ignore);
     opcode_test!(test_05_dec_b, "05", ignore);
     opcode_test!(test_07_rlca, "07", ignore);
@@ -309,40 +307,40 @@ mod tests {
     opcode_test!(test_9f_sbc_a_a, "9f");
 
     // 0xA0 - 0xAF (AND/XOR A, r)
-    opcode_test!(test_a0_and_b, "a0", ignore);
-    opcode_test!(test_a1_and_c, "a1", ignore);
-    opcode_test!(test_a2_and_d, "a2", ignore);
-    opcode_test!(test_a3_and_e, "a3", ignore);
-    opcode_test!(test_a4_and_h, "a4", ignore);
-    opcode_test!(test_a5_and_l, "a5", ignore);
-    opcode_test!(test_a6_and_hl, "a6", ignore);
-    opcode_test!(test_a7_and_a, "a7", ignore);
-    opcode_test!(test_a8_xor_b, "a8", ignore);
-    opcode_test!(test_a9_xor_c, "a9", ignore);
-    opcode_test!(test_aa_xor_d, "aa", ignore);
-    opcode_test!(test_ab_xor_e, "ab", ignore);
-    opcode_test!(test_ac_xor_h, "ac", ignore);
-    opcode_test!(test_ad_xor_l, "ad", ignore);
-    opcode_test!(test_ae_xor_hl, "ae", ignore);
-    opcode_test!(test_af_xor_a, "af", ignore);
+    opcode_test!(test_a0_and_b, "a0");
+    opcode_test!(test_a1_and_c, "a1");
+    opcode_test!(test_a2_and_d, "a2");
+    opcode_test!(test_a3_and_e, "a3");
+    opcode_test!(test_a4_and_h, "a4");
+    opcode_test!(test_a5_and_l, "a5");
+    opcode_test!(test_a6_and_hl, "a6");
+    opcode_test!(test_a7_and_a, "a7");
+    opcode_test!(test_a8_xor_b, "a8");
+    opcode_test!(test_a9_xor_c, "a9");
+    opcode_test!(test_aa_xor_d, "aa");
+    opcode_test!(test_ab_xor_e, "ab");
+    opcode_test!(test_ac_xor_h, "ac");
+    opcode_test!(test_ad_xor_l, "ad");
+    opcode_test!(test_ae_xor_hl, "ae");
+    opcode_test!(test_af_xor_a, "af");
 
     // 0xB0 - 0xBF (OR/CP A, r)
-    opcode_test!(test_b0_or_b, "b0", ignore);
-    opcode_test!(test_b1_or_c, "b1", ignore);
-    opcode_test!(test_b2_or_d, "b2", ignore);
-    opcode_test!(test_b3_or_e, "b3", ignore);
-    opcode_test!(test_b4_or_h, "b4", ignore);
-    opcode_test!(test_b5_or_l, "b5", ignore);
-    opcode_test!(test_b6_or_hl, "b6", ignore);
-    opcode_test!(test_b7_or_a, "b7", ignore);
-    opcode_test!(test_b8_cp_b, "b8", ignore);
-    opcode_test!(test_b9_cp_c, "b9", ignore);
-    opcode_test!(test_ba_cp_d, "ba", ignore);
-    opcode_test!(test_bb_cp_e, "bb", ignore);
-    opcode_test!(test_bc_cp_h, "bc", ignore);
-    opcode_test!(test_bd_cp_l, "bd", ignore);
-    opcode_test!(test_be_cp_hl, "be", ignore);
-    opcode_test!(test_bf_cp_a, "bf", ignore);
+    opcode_test!(test_b0_or_b, "b0");
+    opcode_test!(test_b1_or_c, "b1");
+    opcode_test!(test_b2_or_d, "b2");
+    opcode_test!(test_b3_or_e, "b3");
+    opcode_test!(test_b4_or_h, "b4");
+    opcode_test!(test_b5_or_l, "b5");
+    opcode_test!(test_b6_or_hl, "b6");
+    opcode_test!(test_b7_or_a, "b7");
+    opcode_test!(test_b8_cp_b, "b8");
+    opcode_test!(test_b9_cp_c, "b9");
+    opcode_test!(test_ba_cp_d, "ba");
+    opcode_test!(test_bb_cp_e, "bb");
+    opcode_test!(test_bc_cp_h, "bc");
+    opcode_test!(test_bd_cp_l, "bd");
+    opcode_test!(test_be_cp_hl, "be");
+    opcode_test!(test_bf_cp_a, "bf");
 
     // 0xC1, 0xC5-0xC7, 0xCE-0xCF
     opcode_test!(test_c1_pop_bc, "c1", ignore);

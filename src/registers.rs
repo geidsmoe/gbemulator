@@ -1,5 +1,5 @@
 #[derive(Default)]
-pub struct Registers {
+pub struct Registers8 {
   pub  a: u8,
   pub b: u8,
   pub c: u8,
@@ -10,7 +10,33 @@ pub struct Registers {
   pub l: u8,
 }
 
-impl Registers {
+#[derive(Clone, Copy, Debug)]
+pub enum Registers16 {
+  AF,
+  BC,
+  DE,
+  HL
+}
+
+impl Registers8 {
+  pub fn get_16_bit_reg(&self, reg16: Registers16) -> u16 {
+    match reg16 {
+      Registers16::AF => self.get_af(),
+      Registers16::BC => self.get_bc(),
+      Registers16::DE => self.get_de(),
+      Registers16::HL => self.get_hl()
+    }
+  }
+
+  pub fn set_16_bit_reg(&mut self, reg16: Registers16, value: u16) {
+    match reg16 {
+      Registers16::AF => self.set_af(value),
+      Registers16::BC => self.set_bc(value),
+      Registers16::DE => self.set_de(value),
+      Registers16::HL => self.set_hl(value)
+    }
+  }
+  
   pub fn get_af(&self) -> u16 {
     (self.a as u16) << 8
     | self.f as u16
@@ -51,8 +77,8 @@ impl Registers {
     self.l = (value & 0xFF) as u8;
   }
 
-  pub fn new () -> Registers {
-    return Registers { ..Default::default() }
+  pub fn new () -> Registers8 {
+    return Registers8 { ..Default::default() }
   }
 }
 

@@ -7,13 +7,13 @@ pub fn two_bytes_to_u16(lsb: u8, msb: u8) -> u16 {
 pub struct CPU {
 pub pc: u16,
 pub sp: u16,
-pub registers: Registers,
+pub registers: Registers8,
 pub ram: [u8; 0x10000],
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x100, sp: 0xFFFF, registers: Registers::new(), ram: [0; 0x10000], }
+        return CPU { pc: 0x100, sp: 0xFFFF, registers: Registers8::new(), ram: [0; 0x10000], }
     }
 
     pub fn pop(&mut self) -> u16 {
@@ -79,5 +79,48 @@ impl CPU {
         flags_register.carry = (self.registers.a as u16) < (value as u16) + (cy as u16);
         self.registers.f = u8::from(flags_register);
         result
+      }
+
+      pub fn and(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = self.registers.a & value;
+        flags_register.carry = false;
+        flags_register.half_carry = true;
+        flags_register.zero = result == 0;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn xor(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = self.registers.a ^ value;
+        flags_register.carry = false;
+        flags_register.half_carry = false;
+        flags_register.zero = result == 0;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn or(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = self.registers.a | value;
+        flags_register.carry = false;
+        flags_register.half_carry = false;
+        flags_register.zero = result == 0;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn cp(&mut self, value: u8) {
+        // CP is like SUB but doesn't store the result
+        self.sub(value, false);
+      }
+
+      pub fn inc_r16(&mut self, reg: Registers16) {
+        let inc = self.registers.get_16_bit_reg(reg).wrapping_add(1);
+        self.registers.set_16_bit_reg(reg, inc);
       }
 }
