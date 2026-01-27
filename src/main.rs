@@ -50,6 +50,8 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x37 => {
         let mut flags_register = FlagsRegister::from(cpu.registers.f);
         flags_register.carry = true;
+        flags_register.subtract = false;
+        flags_register.half_carry = false;
         cpu.registers.f = u8::from(flags_register);
       }
       /* START LOAD OPCODES */

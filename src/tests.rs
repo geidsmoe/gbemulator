@@ -262,7 +262,7 @@ mod tests {
     opcode_test!(test_33_inc_sp, "33");
     opcode_test!(test_34_inc_hl_ind, "34");
     opcode_test!(test_35_dec_hl_ind, "35");
-    opcode_test!(test_37_scf, "37", ignore);
+    opcode_test!(test_37_scf, "37");
     opcode_test!(test_38_jr_c_r8, "38", ignore);
     opcode_test!(test_39_add_hl_sp, "39", ignore);
     opcode_test!(test_3b_dec_sp, "3b");
