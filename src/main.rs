@@ -30,6 +30,13 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.registers.f = u8::from(flags_register);
         cpu.registers.a = cpu.registers.a.not(); 
       }
+      0x3F => {
+        let mut flags_register = FlagsRegister::from(cpu.registers.f);
+        flags_register.subtract = false;
+        flags_register.half_carry = false;
+        flags_register.carry = !flags_register.carry;
+        cpu.registers.f = u8::from(flags_register);
+      }
       0x27 => { 
         let mut flags_register = FlagsRegister::from(cpu.registers.f);
         let mut adjustment: u8 = 0;

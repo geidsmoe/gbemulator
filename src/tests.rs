@@ -268,7 +268,7 @@ mod tests {
     opcode_test!(test_3b_dec_sp, "3b");
     opcode_test!(test_3c_inc_a, "3c");
     opcode_test!(test_3d_dec_a, "3d");
-    opcode_test!(test_3f_ccf, "3f", ignore);
+    opcode_test!(test_3f_ccf, "3f");
 
     // 0x80 - 0x8F (ADD/ADC A, r)
     opcode_test!(test_80_add_a_b, "80");
