@@ -6,6 +6,7 @@ pub mod tests;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
+use std::ops::Not;
 use std::path::Path;
 use cpu::{CPU, two_bytes_to_u16};
 use crate::registers::{FlagsRegister, Registers16};
@@ -22,6 +23,13 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a) }
       0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a) }
       0x1F => { cpu.registers.a = cpu.rotate_right_through_carry(cpu.registers.a) }
+      0x2F => { 
+        let mut flags_register = FlagsRegister::from(cpu.registers.f);
+        flags_register.subtract = true;
+        flags_register.half_carry = true;
+        cpu.registers.f = u8::from(flags_register);
+        cpu.registers.a = cpu.registers.a.not(); 
+      }
       0x27 => { 
         let mut flags_register = FlagsRegister::from(cpu.registers.f);
         let mut adjustment: u8 = 0;

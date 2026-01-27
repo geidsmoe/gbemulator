@@ -255,7 +255,7 @@ mod tests {
     opcode_test!(test_2b_dec_hl, "2b");
     opcode_test!(test_2c_inc_l, "2c");
     opcode_test!(test_2d_dec_l, "2d");
-    opcode_test!(test_2f_cpl, "2f", ignore);
+    opcode_test!(test_2f_cpl, "2f");
 
     // 0x30 - 0x3F
     opcode_test!(test_30_jr_nc_r8, "30");
