@@ -54,6 +54,12 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         flags_register.half_carry = false;
         cpu.registers.f = u8::from(flags_register);
       }
+      /* START JR OPCODES */
+      0x18 => {
+        cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      /* END JR OPCODES */
       /* START LOAD OPCODES */
       /* Start direct loads */
       0x01 => {

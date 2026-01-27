@@ -37,6 +37,14 @@ impl CPU {
         two_bytes_to_u16(lsb, msb)
     }
 
+    pub fn read_i8_at(&self, addr: u16) -> i8 {
+      self.ram[addr as usize] as i8
+    }
+
+    pub fn read_i8_at_pc(&self) -> i8 {
+      self.read_i8_at(self.pc)
+    }
+
     pub fn read_u16_at_pc(&self) -> u16 {
         self.read_u16_at(self.pc)
     }
