@@ -419,6 +419,22 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       }
       /* END JUMP OPCODES */
       /* START RETURN OPCODES */
+      0xC1 => {
+        let sp_memory = cpu.pop();
+        cpu.registers.set_bc(sp_memory);
+      }
+      0xD1 => {
+        let sp_memory = cpu.pop();
+        cpu.registers.set_de(sp_memory);
+      }
+      0xE1 => {
+        let sp_memory = cpu.pop();
+        cpu.registers.set_hl(sp_memory);
+      }
+      0xF1 => {
+        let sp_memory = cpu.pop();
+        cpu.registers.set_af(sp_memory);
+      }
       0xC9 => {
         cpu.pc = cpu.pop();
       }
