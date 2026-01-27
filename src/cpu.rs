@@ -182,5 +182,26 @@ impl CPU {
         result
       }
 
-      
+      pub fn rotate_right_with_carry(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = value.rotate_right(1);
+        flags_register.zero = false;
+        flags_register.carry = (value & 0x01) != 0;
+        flags_register.half_carry = false;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn rotate_right_through_carry(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let cy = if flags_register.carry { 1 } else { 0 };
+        let result = (value >> 1) | (cy << 7);
+        flags_register.zero = false;
+        flags_register.carry = (value & 0x01) != 0;
+        flags_register.half_carry = false;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
 }

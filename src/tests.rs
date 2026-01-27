@@ -230,7 +230,7 @@ mod tests {
     opcode_test!(test_0b_dec_bc, "0b");
     opcode_test!(test_0c_inc_c, "0c");
     opcode_test!(test_0d_dec_c, "0d");
-    opcode_test!(test_0f_rrca, "0f", ignore);
+    opcode_test!(test_0f_rrca, "0f");
     // 0x10 - 0x1F
     opcode_test!(test_10_stop, "10", ignore);
     opcode_test!(test_13_inc_de, "13");
@@ -242,7 +242,7 @@ mod tests {
     opcode_test!(test_1b_dec_de, "1b");
     opcode_test!(test_1c_inc_e, "1c");
     opcode_test!(test_1d_dec_e, "1d");
-    opcode_test!(test_1f_rra, "1f", ignore);
+    opcode_test!(test_1f_rra, "1f");
 
     // 0x20 - 0x2F
     opcode_test!(test_20_jr_nz_r8, "20");

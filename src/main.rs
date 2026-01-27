@@ -20,7 +20,9 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x10 => { /* TODO IMPLEMENT STOP */}
       0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a) }
       0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a) }
-      0x27 => {
+      0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a) }
+      0x1F => { cpu.registers.a = cpu.rotate_right_through_carry(cpu.registers.a) }
+      0x27 => { 
         let mut flags_register = FlagsRegister::from(cpu.registers.f);
         let mut adjustment: u8 = 0;
         if flags_register.subtract {
