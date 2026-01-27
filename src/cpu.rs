@@ -61,6 +61,21 @@ impl CPU {
         self.registers.a = result;
     }
 
+    pub fn add_hl_u16(&mut self, operand: u16) {
+      let hl = self.registers.get_hl();
+      let (result, carry) = hl.overflowing_add(operand);
+      let mut flags_register = FlagsRegister::from(self.registers.f);
+      flags_register.carry = carry;
+      flags_register.subtract = false;
+      flags_register.half_carry = (hl & 0x0fff) + (operand & 0x0fff) > 0x0fff;
+      self.registers.f = u8::from(flags_register);
+      self.registers.set_hl(result);
+    }
+
+    pub fn add_hl_16bit(&mut self, reg: Registers16) {
+      self.add_hl_u16(self.registers.get_16_bit_reg(reg));
+    }
+
     pub fn addc_8bit(&mut self, value: u8) {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let carry_value: u8 = if flags_register.carry { 1 } else { 0 };

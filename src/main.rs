@@ -158,6 +158,11 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.ram[(addr + 1) as usize] = (cpu.sp >> 8) as u8;
         cpu.pc = cpu.pc.wrapping_add(2);
       }
+      0x09 => { cpu.add_hl_16bit(Registers16::BC); }
+      0x19 => { cpu.add_hl_16bit(Registers16::DE); }
+      0x29 => { cpu.add_hl_16bit(Registers16::HL); }
+      0x39 => { cpu.add_hl_u16(cpu.sp); }
+      
       0x0A => { cpu.registers.a = cpu.ram[cpu.registers.get_bc() as usize] }
       0x1A => { cpu.registers.a = cpu.ram[cpu.registers.get_de() as usize] }
       0x2A => { 

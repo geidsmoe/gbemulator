@@ -226,7 +226,7 @@ mod tests {
     opcode_test!(test_04_inc_b, "04");
     opcode_test!(test_05_dec_b, "05");
     opcode_test!(test_07_rlca, "07");
-    opcode_test!(test_09_add_hl_bc, "09", ignore);
+    opcode_test!(test_09_add_hl_bc, "09");
     opcode_test!(test_0b_dec_bc, "0b");
     opcode_test!(test_0c_inc_c, "0c");
     opcode_test!(test_0d_dec_c, "0d");
@@ -237,8 +237,8 @@ mod tests {
     opcode_test!(test_14_inc_d, "14");
     opcode_test!(test_15_dec_d, "15");
     opcode_test!(test_17_rla, "17");
-    opcode_test!(test_18_jr_r8, "18", ignore);
-    opcode_test!(test_19_add_hl_de, "19", ignore);
+    opcode_test!(test_18_jr_r8, "18");
+    opcode_test!(test_19_add_hl_de, "19");
     opcode_test!(test_1b_dec_de, "1b");
     opcode_test!(test_1c_inc_e, "1c");
     opcode_test!(test_1d_dec_e, "1d");
@@ -251,7 +251,7 @@ mod tests {
     opcode_test!(test_25_dec_h, "25");
     opcode_test!(test_27_daa, "27");
     opcode_test!(test_28_jr_z_r8, "28");
-    opcode_test!(test_29_add_hl_hl, "29", ignore);
+    opcode_test!(test_29_add_hl_hl, "29");
     opcode_test!(test_2b_dec_hl, "2b");
     opcode_test!(test_2c_inc_l, "2c");
     opcode_test!(test_2d_dec_l, "2d");
@@ -264,7 +264,7 @@ mod tests {
     opcode_test!(test_35_dec_hl_ind, "35");
     opcode_test!(test_37_scf, "37");
     opcode_test!(test_38_jr_c_r8, "38");
-    opcode_test!(test_39_add_hl_sp, "39", ignore);
+    opcode_test!(test_39_add_hl_sp, "39");
     opcode_test!(test_3b_dec_sp, "3b");
     opcode_test!(test_3c_inc_a, "3c");
     opcode_test!(test_3d_dec_a, "3d");
