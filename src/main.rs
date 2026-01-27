@@ -59,6 +59,30 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
         cpu.pc = cpu.pc.wrapping_add(1);
       }
+      0x20 => {
+        if !FlagsRegister::from(cpu.registers.f).zero {
+          cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        }
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x28 => {
+        if FlagsRegister::from(cpu.registers.f).zero {
+          cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        }
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x30 => {
+        if !FlagsRegister::from(cpu.registers.f).carry {
+          cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        }
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0x38 => {
+        if FlagsRegister::from(cpu.registers.f).carry {
+          cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        }
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
       /* END JR OPCODES */
       /* START LOAD OPCODES */
       /* Start direct loads */
