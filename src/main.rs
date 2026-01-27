@@ -20,6 +20,38 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x10 => { /* TODO IMPLEMENT STOP */}
       0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a) }
       0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a) }
+      0x27 => {
+        let mut flags_register = FlagsRegister::from(cpu.registers.f);
+        let mut adjustment: u8 = 0;
+        if flags_register.subtract {
+          if flags_register.half_carry {
+            adjustment |= 0x06;
+          }
+          if flags_register.carry {
+            adjustment |= 0x60;
+          }
+          cpu.registers.a = cpu.registers.a.wrapping_sub(adjustment);
+        } else {
+          if flags_register.half_carry || cpu.registers.a & 0xF > 9 {
+            adjustment |= 0x06;
+          }
+          let mut should_carry = false;
+          if flags_register.carry || cpu.registers.a > 0x99 {
+            adjustment |= 0x60;
+            should_carry = true;
+          }
+          cpu.registers.a  = cpu.registers.a.wrapping_add(adjustment);
+          flags_register.carry = should_carry;
+        }
+        flags_register.half_carry = false;
+        flags_register.zero = cpu.registers.a == 0;
+        cpu.registers.f = u8::from(flags_register);
+      }
+      0x37 => {
+        let mut flags_register = FlagsRegister::from(cpu.registers.f);
+        flags_register.carry = true;
+        cpu.registers.f = u8::from(flags_register);
+      }
       /* START LOAD OPCODES */
       /* Start direct loads */
       0x01 => {

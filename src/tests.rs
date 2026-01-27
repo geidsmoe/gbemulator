@@ -63,7 +63,7 @@ mod tests {
         assert_eq!(cpu.registers.c, expected.c, "{}: C register mismatch", test_name);
         assert_eq!(cpu.registers.d, expected.d, "{}: D register mismatch", test_name);
         assert_eq!(cpu.registers.e, expected.e, "{}: E register mismatch", test_name);
-        assert_eq!(cpu.registers.f, expected.f, "{}: F register mismatch", test_name);
+        assert_eq!(cpu.registers.f, expected.f, "{}: F register mismatch {:#04X} {:#04X}", test_name, cpu.registers.f, expected.f);
         assert_eq!(cpu.registers.h, expected.h, "{}: H register mismatch", test_name);
         assert_eq!(cpu.registers.l, expected.l, "{}: L register mismatch", test_name);
 
@@ -249,7 +249,7 @@ mod tests {
     opcode_test!(test_23_inc_hl, "23");
     opcode_test!(test_24_inc_h, "24");
     opcode_test!(test_25_dec_h, "25");
-    opcode_test!(test_27_daa, "27", ignore);
+    opcode_test!(test_27_daa, "27");
     opcode_test!(test_28_jr_z_r8, "28", ignore);
     opcode_test!(test_29_add_hl_hl, "29", ignore);
     opcode_test!(test_2b_dec_hl, "2b");
