@@ -366,7 +366,7 @@ mod tests {
     opcode_test!(test_e5_push_hl, "e5");
     opcode_test!(test_e6_and_d8, "e6");
     opcode_test!(test_e7_rst_20h, "e7");
-    opcode_test!(test_e8_add_sp_r8, "e8", ignore);
+    opcode_test!(test_e8_add_sp_r8, "e8");
     opcode_test!(test_ea_ld_a16_a, "ea");
     opcode_test!(test_ee_xor_d8, "ee");
     opcode_test!(test_ef_rst_28h, "ef");

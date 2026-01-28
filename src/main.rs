@@ -162,6 +162,18 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x19 => { cpu.add_hl_16bit(Registers16::DE); }
       0x29 => { cpu.add_hl_16bit(Registers16::HL); }
       0x39 => { cpu.add_hl_u16(cpu.sp); }
+      0xE8 => {
+        let operand: i8 = cpu.read_i8_at_pc();
+        let (result, carry) = cpu.sp.overflowing_add(operand as u16);
+        let mut flags_register = FlagsRegister::from(cpu.registers.f);
+        flags_register.zero = false;
+        flags_register.subtract = false;
+        flags_register.half_carry = (cpu.sp & 0x0f) + (operand as u16 & 0x0f) > 0x0f;
+        flags_register.carry = (cpu.sp & 0xff) + (operand as u16 & 0xff) > 0xff;
+        cpu.registers.f = u8::from(flags_register);
+        cpu.sp = result;
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
       
       0x0A => { cpu.registers.a = cpu.ram[cpu.registers.get_bc() as usize] }
       0x1A => { cpu.registers.a = cpu.ram[cpu.registers.get_de() as usize] }
@@ -285,7 +297,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       }
       0xEA => {
         let addr = cpu.read_u16_at_pc();
-        cpu.ram[addr as usize] = cpu.registers.a;
+        cpu.ram[addr as usize] = cpu.registers.a; 
         cpu.pc = cpu.pc.wrapping_add(2);
       }
       0xFA => {
