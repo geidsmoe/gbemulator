@@ -424,6 +424,40 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.cp(value);
       }
       /* END 8BIT IMMEDIATE ALU */
+      /* START RST OPCODES */
+      0xC7 => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x00, 0x00);
+      }
+      0xD7 => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x10, 0x00);
+      }
+      0xE7 => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x20, 0x00);
+      }
+      0xF7 => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x30, 0x00);
+      }
+      0xCF => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x08, 0x00);
+      }
+      0xDF => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x18, 0x00);
+      }
+      0xEF => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x28, 0x00);
+      }
+      0xFF => {
+        cpu.push(cpu.pc);
+        cpu.pc = two_bytes_to_u16(0x38, 0x00);
+      }
+      /* END RST OPCODES */
       /* START JUMP OPCODES */
       0xC2 => {
         if !FlagsRegister::from(cpu.registers.f).zero {
