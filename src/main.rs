@@ -19,6 +19,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
     match opcode  {
       0x00 => { /* NO OP */ }
       0x10 => { /* TODO IMPLEMENT STOP */}
+      0xF3 => { /* TODO IMPLEMENT DI (Reset the interrupt master enable (IME) flag and prohibit maskable interrupts.) */}
       0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a) }
       0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a) }
       0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a) }
@@ -304,6 +305,21 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         let addr = cpu.read_u16_at_pc();
         cpu.registers.a = cpu.ram[addr as usize];
         cpu.pc = cpu.pc.wrapping_add(2);
+      }
+      0xF8 => {
+        let operand: i8 = cpu.read_i8_at_pc();
+        let result = cpu.sp.wrapping_add(operand as u16);
+        let mut flags_register = FlagsRegister::from(cpu.registers.f);
+        flags_register.zero = false;
+        flags_register.subtract = false;
+        flags_register.half_carry = half_carry_add_8bit(cpu.sp as u8, operand as u8, 0);
+        flags_register.carry = carry_add_8bit(cpu.sp as u8, operand as u8, 0);
+        cpu.registers.f = u8::from(flags_register);
+        cpu.registers.set_hl(result);
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0xF9 => {
+        cpu.sp = cpu.registers.get_hl();
       }
       /* END LOAD OPCODES */
       /* START 16-BIT INC */

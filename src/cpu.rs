@@ -31,15 +31,17 @@ pub fn carry_add_16bit(a: u16, b: u16) -> bool {
 }
   
 pub struct CPU {
-pub pc: u16,
-pub sp: u16,
-pub registers: Registers8,
-pub ram: [u8; 0x10000],
+  pub pc: u16,
+  pub sp: u16,
+  pub registers: Registers8,
+  pub ram: [u8; 0x10000],
+  pub ime: u8,
+  pub ie: u8,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x100, sp: 0xFFFF, registers: Registers8::new(), ram: [0; 0x10000], }
+        return CPU { pc: 0x100, sp: 0xFFFF, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0 }
     }
 
     pub fn pop(&mut self) -> u16 {

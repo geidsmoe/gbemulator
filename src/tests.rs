@@ -6,6 +6,7 @@ mod tests {
     use crate::execute_opcode;
     use serde::Deserialize;
     use std::fs;
+    use std::os::linux::raw::stat;
 
     #[derive(Debug, Deserialize)]
     struct TestCase {
@@ -37,6 +38,8 @@ mod tests {
         let mut cpu = CPU::new();
         cpu.pc = state.pc;
         cpu.sp = state.sp;
+        cpu.ime = state.ime;
+        cpu.ie = state.ie;
         cpu.registers.a = state.a;
         cpu.registers.b = state.b;
         cpu.registers.c = state.c;
@@ -379,8 +382,8 @@ mod tests {
     opcode_test!(test_f5_push_af, "f5");
     opcode_test!(test_f6_or_d8, "f6");
     opcode_test!(test_f7_rst_30h, "f7");
-    opcode_test!(test_f8_ld_hl_sp_r8, "f8", ignore);
-    opcode_test!(test_f9_ld_sp_hl, "f9", ignore);
+    opcode_test!(test_f8_ld_hl_sp_r8, "f8");
+    opcode_test!(test_f9_ld_sp_hl, "f9");
     opcode_test!(test_fa_ld_a_a16, "fa");
     opcode_test!(test_fb_ei, "fb", ignore);
     opcode_test!(test_fe_cp_d8, "fe");
