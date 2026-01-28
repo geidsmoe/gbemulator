@@ -263,6 +263,36 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x7D => { cpu.registers.a = cpu.registers.l; }
       0x7E => { cpu.registers.a = cpu.ram[cpu.registers.get_hl() as usize]; }
       0x7F => { /* LD reg into itself is no op */ }
+      0xE0 => {
+        let addr_lsb = cpu.ram[cpu.pc as usize];
+        let addr = 0xFF00 | (addr_lsb as u16);
+        cpu.ram[addr as usize] = cpu.registers.a;
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0xF0 => {
+        let addr_lsb = cpu.ram[cpu.pc as usize];
+        let addr = 0xFF00 | (addr_lsb as u16);
+        cpu.registers.a = cpu.ram[addr as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+      }
+      0xE2 => {
+        let addr = 0xFF00 | (cpu.registers.c as u16);
+        cpu.ram[addr as usize] = cpu.registers.a;
+      }
+      0xF2 => {
+        let addr = 0xFF00 | (cpu.registers.c as u16);
+        cpu.registers.a = cpu.ram[addr as usize];
+      }
+      0xEA => {
+        let addr = cpu.read_u16_at_pc();
+        cpu.ram[addr as usize] = cpu.registers.a;
+        cpu.pc = cpu.pc.wrapping_add(2);
+      }
+      0xFA => {
+        let addr = cpu.read_u16_at_pc();
+        cpu.registers.a = cpu.ram[addr as usize];
+        cpu.pc = cpu.pc.wrapping_add(2);
+      }
       /* END LOAD OPCODES */
       /* START 16-BIT INC */
       0x03 => { cpu.inc_r16(Registers16::BC); }
