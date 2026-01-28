@@ -3,6 +3,32 @@ use crate::registers::*;
 pub fn two_bytes_to_u16(lsb: u8, msb: u8) -> u16 {
     (((msb as u16) << 8) | (lsb as u16)).into()
 }
+
+// 8-bit carry helpers
+pub fn half_carry_add_8bit(a: u8, b: u8, carry: u8) -> bool {
+    (a & 0x0f) + (b & 0x0f) + carry > 0x0f
+}
+
+pub fn carry_add_8bit(a: u8, b: u8, carry: u8) -> bool {
+    (a as u16) + (b as u16) + (carry as u16) > 0xff
+}
+
+pub fn half_borrow_sub_8bit(a: u8, b: u8, carry: u8) -> bool {
+    (a & 0x0f) < (b & 0x0f) + carry
+}
+
+pub fn borrow_sub_8bit(a: u8, b: u8, carry: u8) -> bool {
+    (a as u16) < (b as u16) + (carry as u16)
+}
+
+// 16-bit carry helpers (half_carry at bit 11)
+pub fn half_carry_add_16bit(a: u16, b: u16) -> bool {
+    (a & 0x0fff) + (b & 0x0fff) > 0x0fff
+}
+
+pub fn carry_add_16bit(a: u16, b: u16) -> bool {
+    (a as u32) + (b as u32) > 0xffff
+}
   
 pub struct CPU {
 pub pc: u16,
@@ -51,11 +77,10 @@ impl CPU {
 
     pub fn add_8bit(&mut self, value: u8) {
         let mut flags_register = FlagsRegister::from(self.registers.f);
-        let (result, carry) = self.registers.a.overflowing_add(value);
-        let half_carry = (self.registers.a & 0x0f).checked_add(value | 0xf0).is_none();
-        flags_register.carry = carry;
+        let result = self.registers.a.wrapping_add(value);
+        flags_register.carry = carry_add_8bit(self.registers.a, value, 0);
         flags_register.zero = result == 0;
-        flags_register.half_carry = half_carry;
+        flags_register.half_carry = half_carry_add_8bit(self.registers.a, value, 0);
         flags_register.subtract = false;
         self.registers.f = u8::from(flags_register);
         self.registers.a = result;
@@ -63,11 +88,11 @@ impl CPU {
 
     pub fn add_hl_u16(&mut self, operand: u16) {
       let hl = self.registers.get_hl();
-      let (result, carry) = hl.overflowing_add(operand);
+      let result = hl.wrapping_add(operand);
       let mut flags_register = FlagsRegister::from(self.registers.f);
-      flags_register.carry = carry;
+      flags_register.carry = carry_add_16bit(hl, operand);
       flags_register.subtract = false;
-      flags_register.half_carry = (hl & 0x0fff) + (operand & 0x0fff) > 0x0fff;
+      flags_register.half_carry = half_carry_add_16bit(hl, operand);
       self.registers.f = u8::from(flags_register);
       self.registers.set_hl(result);
     }
@@ -82,8 +107,8 @@ impl CPU {
         let result = self.registers.a.wrapping_add(value).wrapping_add(carry_value);
         flags_register.zero = result == 0;
         flags_register.subtract = false;
-        flags_register.half_carry = (self.registers.a & 0xf) + (value & 0xf) + carry_value > 0xf;
-        flags_register.carry = self.registers.a as u16 + value as u16 + carry_value as u16 > 0xff;
+        flags_register.half_carry = half_carry_add_8bit(self.registers.a, value, carry_value);
+        flags_register.carry = carry_add_8bit(self.registers.a, value, carry_value);
         self.registers.f = u8::from(flags_register);
         self.registers.a = result;
     }
@@ -94,12 +119,8 @@ impl CPU {
         let result = self.registers.a.wrapping_sub(value).wrapping_sub(cy);
         flags_register.zero = result == 0;
         flags_register.subtract = true;
-        flags_register.half_carry =
-          (self.registers.a & 0xf)
-            .wrapping_sub(value & 0xf)
-            .wrapping_sub(cy)
-            & (0xf + 1) != 0;
-        flags_register.carry = (self.registers.a as u16) < (value as u16) + (cy as u16);
+        flags_register.half_carry = half_borrow_sub_8bit(self.registers.a, value, cy);
+        flags_register.carry = borrow_sub_8bit(self.registers.a, value, cy);
         self.registers.f = u8::from(flags_register);
         result
       }
@@ -157,7 +178,7 @@ impl CPU {
         let result = value.wrapping_add(1);
         flags_register.zero = result == 0;
         flags_register.subtract = false;
-        flags_register.half_carry = (value & 0x0f) == 0x0f;
+        flags_register.half_carry = half_carry_add_8bit(value, 1, 0);
         // carry flag not affected
         self.registers.f = u8::from(flags_register);
         result
@@ -168,7 +189,7 @@ impl CPU {
         let result = value.wrapping_sub(1);
         flags_register.zero = result == 0;
         flags_register.subtract = true;
-        flags_register.half_carry = (value & 0x0f) == 0x00;
+        flags_register.half_carry = half_borrow_sub_8bit(value, 1, 0);
         // carry flag not affected
         self.registers.f = u8::from(flags_register);
         result

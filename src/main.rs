@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::ops::Not;
 use std::path::Path;
-use cpu::{CPU, two_bytes_to_u16};
+use cpu::{CPU, two_bytes_to_u16, half_carry_add_8bit, carry_add_8bit};
 use crate::registers::{FlagsRegister, Registers16};
 
 use crate::instructions::*;
@@ -164,12 +164,12 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x39 => { cpu.add_hl_u16(cpu.sp); }
       0xE8 => {
         let operand: i8 = cpu.read_i8_at_pc();
-        let (result, carry) = cpu.sp.overflowing_add(operand as u16);
+        let result = cpu.sp.wrapping_add(operand as u16);
         let mut flags_register = FlagsRegister::from(cpu.registers.f);
         flags_register.zero = false;
         flags_register.subtract = false;
-        flags_register.half_carry = (cpu.sp & 0x0f) + (operand as u16 & 0x0f) > 0x0f;
-        flags_register.carry = (cpu.sp & 0xff) + (operand as u16 & 0xff) > 0xff;
+        flags_register.half_carry = half_carry_add_8bit(cpu.sp as u8, operand as u8, 0);
+        flags_register.carry = carry_add_8bit(cpu.sp as u8, operand as u8, 0);
         cpu.registers.f = u8::from(flags_register);
         cpu.sp = result;
         cpu.pc = cpu.pc.wrapping_add(1);
