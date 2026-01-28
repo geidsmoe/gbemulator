@@ -382,6 +382,48 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0xBE => { cpu.cp(cpu.ram[cpu.registers.get_hl() as usize]) }
       0xBF => { cpu.cp(cpu.registers.a) }
       /* END 8BIT CP */
+      /* START 8BIT IMMEDIATE ALU */
+      0xC6 => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.add_8bit(value);
+      }
+      0xCE => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.addc_8bit(value);
+      }
+      0xD6 => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.registers.a = cpu.sub(value, false);
+      }
+      0xDE => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.registers.a = cpu.sub(value, true);
+      }
+      0xE6 => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.registers.a = cpu.and(value);
+      }
+      0xEE => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.registers.a = cpu.xor(value);
+      }
+      0xF6 => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.registers.a = cpu.or(value);
+      }
+      0xFE => {
+        let value = cpu.ram[cpu.pc as usize];
+        cpu.pc = cpu.pc.wrapping_add(1);
+        cpu.cp(value);
+      }
+      /* END 8BIT IMMEDIATE ALU */
       /* START JUMP OPCODES */
       0xC2 => {
         if !FlagsRegister::from(cpu.registers.f).zero {

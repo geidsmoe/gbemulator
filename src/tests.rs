@@ -345,18 +345,18 @@ mod tests {
     // 0xC1, 0xC5-0xC7, 0xCE-0xCF
     opcode_test!(test_c1_pop_bc, "c1");
     opcode_test!(test_c5_push_bc, "c5");
-    opcode_test!(test_c6_add_a_d8, "c6", ignore);
+    opcode_test!(test_c6_add_a_d8, "c6");
     opcode_test!(test_c7_rst_00h, "c7", ignore);
-    opcode_test!(test_ce_adc_a_d8, "ce", ignore);
+    opcode_test!(test_ce_adc_a_d8, "ce");
     opcode_test!(test_cf_rst_08h, "cf", ignore);
 
     // 0xD1, 0xD5-0xD7, 0xD9, 0xDE-0xDF
     opcode_test!(test_d1_pop_de, "d1");
     opcode_test!(test_d5_push_de, "d5");
-    opcode_test!(test_d6_sub_d8, "d6", ignore);
+    opcode_test!(test_d6_sub_d8, "d6");
     opcode_test!(test_d7_rst_10h, "d7", ignore);
     opcode_test!(test_d9_reti, "d9", ignore);
-    opcode_test!(test_de_sbc_a_d8, "de", ignore);
+    opcode_test!(test_de_sbc_a_d8, "de");
     opcode_test!(test_df_rst_18h, "df", ignore);
 
     // 0xE0-0xE2, 0xE5-0xE8, 0xEA, 0xEE-0xEF
@@ -364,11 +364,11 @@ mod tests {
     opcode_test!(test_e1_pop_hl, "e1");
     opcode_test!(test_e2_ld_c_a, "e2", ignore);
     opcode_test!(test_e5_push_hl, "e5");
-    opcode_test!(test_e6_and_d8, "e6", ignore);
+    opcode_test!(test_e6_and_d8, "e6");
     opcode_test!(test_e7_rst_20h, "e7", ignore);
     opcode_test!(test_e8_add_sp_r8, "e8", ignore);
     opcode_test!(test_ea_ld_a16_a, "ea", ignore);
-    opcode_test!(test_ee_xor_d8, "ee", ignore);
+    opcode_test!(test_ee_xor_d8, "ee");
     opcode_test!(test_ef_rst_28h, "ef", ignore);
 
     // 0xF0-0xF3, 0xF5-0xFB, 0xFE-0xFF
@@ -377,12 +377,12 @@ mod tests {
     opcode_test!(test_f2_ld_a_c, "f2", ignore);
     opcode_test!(test_f3_di, "f3", ignore);
     opcode_test!(test_f5_push_af, "f5");
-    opcode_test!(test_f6_or_d8, "f6", ignore);
+    opcode_test!(test_f6_or_d8, "f6");
     opcode_test!(test_f7_rst_30h, "f7", ignore);
     opcode_test!(test_f8_ld_hl_sp_r8, "f8", ignore);
     opcode_test!(test_f9_ld_sp_hl, "f9", ignore);
     opcode_test!(test_fa_ld_a_a16, "fa", ignore);
     opcode_test!(test_fb_ei, "fb", ignore);
-    opcode_test!(test_fe_cp_d8, "fe", ignore);
+    opcode_test!(test_fe_cp_d8, "fe");
     opcode_test!(test_ff_rst_38h, "ff", ignore);
 }
