@@ -10,8 +10,20 @@ pub struct Registers8 {
   pub l: u8,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum RegisterNames8 {
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  H,
+  L
+}
+
 #[derive(Clone, Copy, Debug)]
-pub enum Registers16 {
+pub enum RegisterNames16 {
   AF,
   BC,
   DE,
@@ -19,21 +31,21 @@ pub enum Registers16 {
 }
 
 impl Registers8 {
-  pub fn get_16_bit_reg(&self, reg16: Registers16) -> u16 {
+  pub fn get_16_bit_reg(&self, reg16: RegisterNames16) -> u16 {
     match reg16 {
-      Registers16::AF => self.get_af(),
-      Registers16::BC => self.get_bc(),
-      Registers16::DE => self.get_de(),
-      Registers16::HL => self.get_hl()
+      RegisterNames16::AF => self.get_af(),
+      RegisterNames16::BC => self.get_bc(),
+      RegisterNames16::DE => self.get_de(),
+      RegisterNames16::HL => self.get_hl()
     }
   }
 
-  pub fn set_16_bit_reg(&mut self, reg16: Registers16, value: u16) {
+  pub fn set_16_bit_reg(&mut self, reg16: RegisterNames16, value: u16) {
     match reg16 {
-      Registers16::AF => self.set_af(value),
-      Registers16::BC => self.set_bc(value),
-      Registers16::DE => self.set_de(value),
-      Registers16::HL => self.set_hl(value)
+      RegisterNames16::AF => self.set_af(value),
+      RegisterNames16::BC => self.set_bc(value),
+      RegisterNames16::DE => self.set_de(value),
+      RegisterNames16::HL => self.set_hl(value)
     }
   }
   

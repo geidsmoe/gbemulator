@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Instruction {
     pub mnemonic: String,
-    pub bytes: u8,
+    pub bytes: u16,
     pub cycles: Vec<u32>,
     pub operands: Vec<Operand>,
     pub immediate: bool,

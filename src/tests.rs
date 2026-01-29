@@ -388,4 +388,6 @@ mod tests {
     opcode_test!(test_fb_ei, "fb", ignore);
     opcode_test!(test_fe_cp_d8, "fe");
     opcode_test!(test_ff_rst_38h, "ff");
+
+    opcode_test!(test_cb_00_rlcb, "cb 00");
 }

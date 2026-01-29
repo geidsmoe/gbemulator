@@ -9,9 +9,20 @@ use std::io::BufReader;
 use std::ops::Not;
 use std::path::Path;
 use cpu::{CPU, two_bytes_to_u16, half_carry_add_8bit, carry_add_8bit};
-use crate::registers::{FlagsRegister, Registers16};
+use crate::registers::{FlagsRegister, RegisterNames8, RegisterNames16};
 
 use crate::instructions::*;
+
+pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opcode: u8) {
+  match opcode {
+    0x00 => {
+      cpu.registers.b = cpu.rotate_left_with_carry(cpu.registers.b, RegisterNames8::B);
+    }
+    _ => {
+      println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
+    }
+  }
+}
 
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
   let opcode = cpu.ram[cpu.pc as usize];
@@ -20,7 +31,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x00 => { /* NO OP */ }
       0x10 => { /* TODO IMPLEMENT STOP */}
       0xF3 => { /* TODO IMPLEMENT DI (Reset the interrupt master enable (IME) flag and prohibit maskable interrupts.) */}
-      0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a) }
+      0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a, RegisterNames8::A) }
       0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a) }
       0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a) }
       0x1F => { cpu.registers.a = cpu.rotate_right_through_carry(cpu.registers.a) }
@@ -159,9 +170,9 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
         cpu.ram[(addr + 1) as usize] = (cpu.sp >> 8) as u8;
         cpu.pc = cpu.pc.wrapping_add(2);
       }
-      0x09 => { cpu.add_hl_16bit(Registers16::BC); }
-      0x19 => { cpu.add_hl_16bit(Registers16::DE); }
-      0x29 => { cpu.add_hl_16bit(Registers16::HL); }
+      0x09 => { cpu.add_hl_16bit(RegisterNames16::BC); }
+      0x19 => { cpu.add_hl_16bit(RegisterNames16::DE); }
+      0x29 => { cpu.add_hl_16bit(RegisterNames16::HL); }
       0x39 => { cpu.add_hl_u16(cpu.sp); }
       0xE8 => {
         let operand: i8 = cpu.read_i8_at_pc();
@@ -323,15 +334,15 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       }
       /* END LOAD OPCODES */
       /* START 16-BIT INC */
-      0x03 => { cpu.inc_r16(Registers16::BC); }
-      0x13 => { cpu.inc_r16(Registers16::DE); }
-      0x23 => { cpu.inc_r16(Registers16::HL); }
+      0x03 => { cpu.inc_r16(RegisterNames16::BC); }
+      0x13 => { cpu.inc_r16(RegisterNames16::DE); }
+      0x23 => { cpu.inc_r16(RegisterNames16::HL); }
       0x33 => { cpu.sp = cpu.sp.wrapping_add(1) }
       /* END 16-BIT INC */
       /* START 16-BIT DEC */
-      0x0B => { cpu.dec_r16(Registers16::BC); }
-      0x1B => { cpu.dec_r16(Registers16::DE); }
-      0x2B => { cpu.dec_r16(Registers16::HL); }
+      0x0B => { cpu.dec_r16(RegisterNames16::BC); }
+      0x1B => { cpu.dec_r16(RegisterNames16::DE); }
+      0x2B => { cpu.dec_r16(RegisterNames16::HL); }
       0x3B => { cpu.sp = cpu.sp.wrapping_sub(1) }
       /* END 16-BIT DEC */
       /* START 8-BIT INC */
@@ -673,14 +684,11 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       /* END PUSH r16 */
       0xCB => {
         let opcode = cpu.ram[cpu.pc as usize];
-        cpu.pc += 1;
+        cpu.pc = cpu.pc.wrapping_add(1);
         let instruction = &instruction_set.cbprefixed[&format!("{:#04X}", opcode)];
-        for operand in &instruction.operands {
-          if operand.bytes.is_some() {
-            cpu.pc += operand.bytes.unwrap() as u16;
-          }
-        }
-        println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
+        
+        
+        execute_cb_prefixed_opcode(cpu, instruction, opcode);
       }
       _ => {
         let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];

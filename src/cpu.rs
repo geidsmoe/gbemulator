@@ -99,7 +99,7 @@ impl CPU {
       self.registers.set_hl(result);
     }
 
-    pub fn add_hl_16bit(&mut self, reg: Registers16) {
+    pub fn add_hl_16bit(&mut self, reg: RegisterNames16) {
       self.add_hl_u16(self.registers.get_16_bit_reg(reg));
     }
 
@@ -165,12 +165,12 @@ impl CPU {
         self.sub(value, false);
       }
 
-      pub fn inc_r16(&mut self, reg: Registers16) {
+      pub fn inc_r16(&mut self, reg: RegisterNames16) {
         let inc = self.registers.get_16_bit_reg(reg).wrapping_add(1);
         self.registers.set_16_bit_reg(reg, inc);
       }
 
-      pub fn dec_r16(&mut self, reg: Registers16) {
+      pub fn dec_r16(&mut self, reg: RegisterNames16) {
         let dec = self.registers.get_16_bit_reg(reg).wrapping_sub(1);
         self.registers.set_16_bit_reg(reg, dec);
       }
@@ -197,10 +197,10 @@ impl CPU {
         result
       }
 
-      pub fn rotate_left_with_carry(&mut self, value: u8) -> u8 {
+      pub fn rotate_left_with_carry(&mut self, value: u8, register_name: RegisterNames8) -> u8 {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let result = value.rotate_left(1);
-        flags_register.zero = false;
+        if register_name == RegisterNames8::A { flags_register.zero = false } else { flags_register.zero = result == 0 } 
         flags_register.carry = (value & 0x80) != 0;
         flags_register.half_carry = false;
         flags_register.subtract = false;
