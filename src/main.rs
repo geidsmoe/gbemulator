@@ -303,8 +303,109 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     }
     0xBF => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 7); }
 
-    // 0xC0-0xC7: SET 0, r
-    0xC0 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 0) }
+    // 0xC0-0xC7: SET 0,r
+    0xC0 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 0); }
+    0xC1 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 0); }
+    0xC2 => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 0); }
+    0xC3 => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 0); }
+    0xC4 => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 0); }
+    0xC5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 0); }
+    0xC6 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 0);
+    }
+    0xC7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 0); }
+
+    // 0xC8-0xCF: SET 1,r
+    0xC8 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 1); }
+    0xC9 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 1); }
+    0xCA => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 1); }
+    0xCB => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 1); }
+    0xCC => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 1); }
+    0xCD => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 1); }
+    0xCE => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 1);
+    }
+    0xCF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 1); }
+
+    // 0xD0-0xD7: SET 2,r
+    0xD0 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 2); }
+    0xD1 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 2); }
+    0xD2 => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 2); }
+    0xD3 => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 2); }
+    0xD4 => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 2); }
+    0xD5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 2); }
+    0xD6 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 2);
+    }
+    0xD7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 2); }
+
+    // 0xD8-0xDF: SET 3,r
+    0xD8 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 3); }
+    0xD9 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 3); }
+    0xDA => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 3); }
+    0xDB => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 3); }
+    0xDC => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 3); }
+    0xDD => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 3); }
+    0xDE => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 3);
+    }
+    0xDF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 3); }
+
+    // 0xE0-0xE7: SET 4,r
+    0xE0 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 4); }
+    0xE1 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 4); }
+    0xE2 => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 4); }
+    0xE3 => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 4); }
+    0xE4 => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 4); }
+    0xE5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 4); }
+    0xE6 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 4);
+    }
+    0xE7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 4); }
+
+    // 0xE8-0xEF: SET 5,r
+    0xE8 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 5); }
+    0xE9 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 5); }
+    0xEA => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 5); }
+    0xEB => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 5); }
+    0xEC => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 5); }
+    0xED => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 5); }
+    0xEE => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 5);
+    }
+    0xEF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 5); }
+
+    // 0xF0-0xF7: SET 6,r
+    0xF0 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 6); }
+    0xF1 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 6); }
+    0xF2 => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 6); }
+    0xF3 => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 6); }
+    0xF4 => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 6); }
+    0xF5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 6); }
+    0xF6 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 6);
+    }
+    0xF7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 6); }
+
+    // 0xF8-0xFF: SET 7,r
+    0xF8 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 7); }
+    0xF9 => { cpu.registers.c = cpu.set_bit(cpu.registers.c, 7); }
+    0xFA => { cpu.registers.d = cpu.set_bit(cpu.registers.d, 7); }
+    0xFB => { cpu.registers.e = cpu.set_bit(cpu.registers.e, 7); }
+    0xFC => { cpu.registers.h = cpu.set_bit(cpu.registers.h, 7); }
+    0xFD => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 7); }
+    0xFE => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.set_bit(cpu.ram[addr], 7);
+    }
+    0xFF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 7); }
 
     _ => {
       println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);

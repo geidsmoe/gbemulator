@@ -632,81 +632,81 @@ mod tests {
 
     // 0xC0-0xC7: SET 0,r
     opcode_test!(test_cb_c0_set_0_b, "cb c0");
-    opcode_test!(test_cb_c1_set_0_c, "cb c1", ignore);
-    opcode_test!(test_cb_c2_set_0_d, "cb c2", ignore);
-    opcode_test!(test_cb_c3_set_0_e, "cb c3", ignore);
-    opcode_test!(test_cb_c4_set_0_h, "cb c4", ignore);
-    opcode_test!(test_cb_c5_set_0_l, "cb c5", ignore);
-    opcode_test!(test_cb_c6_set_0_hl, "cb c6", ignore);
-    opcode_test!(test_cb_c7_set_0_a, "cb c7", ignore);
+    opcode_test!(test_cb_c1_set_0_c, "cb c1");
+    opcode_test!(test_cb_c2_set_0_d, "cb c2");
+    opcode_test!(test_cb_c3_set_0_e, "cb c3");
+    opcode_test!(test_cb_c4_set_0_h, "cb c4");
+    opcode_test!(test_cb_c5_set_0_l, "cb c5");
+    opcode_test!(test_cb_c6_set_0_hl, "cb c6");
+    opcode_test!(test_cb_c7_set_0_a, "cb c7");
 
     // 0xC8-0xCF: SET 1,r
-    opcode_test!(test_cb_c8_set_1_b, "cb c8", ignore);
-    opcode_test!(test_cb_c9_set_1_c, "cb c9", ignore);
-    opcode_test!(test_cb_ca_set_1_d, "cb ca", ignore);
-    opcode_test!(test_cb_cb_set_1_e, "cb cb", ignore);
-    opcode_test!(test_cb_cc_set_1_h, "cb cc", ignore);
-    opcode_test!(test_cb_cd_set_1_l, "cb cd", ignore);
-    opcode_test!(test_cb_ce_set_1_hl, "cb ce", ignore);
-    opcode_test!(test_cb_cf_set_1_a, "cb cf", ignore);
+    opcode_test!(test_cb_c8_set_1_b, "cb c8");
+    opcode_test!(test_cb_c9_set_1_c, "cb c9");
+    opcode_test!(test_cb_ca_set_1_d, "cb ca");
+    opcode_test!(test_cb_cb_set_1_e, "cb cb");
+    opcode_test!(test_cb_cc_set_1_h, "cb cc");
+    opcode_test!(test_cb_cd_set_1_l, "cb cd");
+    opcode_test!(test_cb_ce_set_1_hl, "cb ce");
+    opcode_test!(test_cb_cf_set_1_a, "cb cf");
 
     // 0xD0-0xD7: SET 2,r
-    opcode_test!(test_cb_d0_set_2_b, "cb d0", ignore);
-    opcode_test!(test_cb_d1_set_2_c, "cb d1", ignore);
-    opcode_test!(test_cb_d2_set_2_d, "cb d2", ignore);
-    opcode_test!(test_cb_d3_set_2_e, "cb d3", ignore);
-    opcode_test!(test_cb_d4_set_2_h, "cb d4", ignore);
-    opcode_test!(test_cb_d5_set_2_l, "cb d5", ignore);
-    opcode_test!(test_cb_d6_set_2_hl, "cb d6", ignore);
-    opcode_test!(test_cb_d7_set_2_a, "cb d7", ignore);
+    opcode_test!(test_cb_d0_set_2_b, "cb d0");
+    opcode_test!(test_cb_d1_set_2_c, "cb d1");
+    opcode_test!(test_cb_d2_set_2_d, "cb d2");
+    opcode_test!(test_cb_d3_set_2_e, "cb d3");
+    opcode_test!(test_cb_d4_set_2_h, "cb d4");
+    opcode_test!(test_cb_d5_set_2_l, "cb d5");
+    opcode_test!(test_cb_d6_set_2_hl, "cb d6");
+    opcode_test!(test_cb_d7_set_2_a, "cb d7");
 
     // 0xD8-0xDF: SET 3,r
-    opcode_test!(test_cb_d8_set_3_b, "cb d8", ignore);
-    opcode_test!(test_cb_d9_set_3_c, "cb d9", ignore);
-    opcode_test!(test_cb_da_set_3_d, "cb da", ignore);
-    opcode_test!(test_cb_db_set_3_e, "cb db", ignore);
-    opcode_test!(test_cb_dc_set_3_h, "cb dc", ignore);
-    opcode_test!(test_cb_dd_set_3_l, "cb dd", ignore);
-    opcode_test!(test_cb_de_set_3_hl, "cb de", ignore);
-    opcode_test!(test_cb_df_set_3_a, "cb df", ignore);
+    opcode_test!(test_cb_d8_set_3_b, "cb d8");
+    opcode_test!(test_cb_d9_set_3_c, "cb d9");
+    opcode_test!(test_cb_da_set_3_d, "cb da");
+    opcode_test!(test_cb_db_set_3_e, "cb db");
+    opcode_test!(test_cb_dc_set_3_h, "cb dc");
+    opcode_test!(test_cb_dd_set_3_l, "cb dd");
+    opcode_test!(test_cb_de_set_3_hl, "cb de");
+    opcode_test!(test_cb_df_set_3_a, "cb df");
 
     // 0xE0-0xE7: SET 4,r
-    opcode_test!(test_cb_e0_set_4_b, "cb e0", ignore);
-    opcode_test!(test_cb_e1_set_4_c, "cb e1", ignore);
-    opcode_test!(test_cb_e2_set_4_d, "cb e2", ignore);
-    opcode_test!(test_cb_e3_set_4_e, "cb e3", ignore);
-    opcode_test!(test_cb_e4_set_4_h, "cb e4", ignore);
-    opcode_test!(test_cb_e5_set_4_l, "cb e5", ignore);
-    opcode_test!(test_cb_e6_set_4_hl, "cb e6", ignore);
-    opcode_test!(test_cb_e7_set_4_a, "cb e7", ignore);
+    opcode_test!(test_cb_e0_set_4_b, "cb e0");
+    opcode_test!(test_cb_e1_set_4_c, "cb e1");
+    opcode_test!(test_cb_e2_set_4_d, "cb e2");
+    opcode_test!(test_cb_e3_set_4_e, "cb e3");
+    opcode_test!(test_cb_e4_set_4_h, "cb e4");
+    opcode_test!(test_cb_e5_set_4_l, "cb e5");
+    opcode_test!(test_cb_e6_set_4_hl, "cb e6");
+    opcode_test!(test_cb_e7_set_4_a, "cb e7");
 
     // 0xE8-0xEF: SET 5,r
-    opcode_test!(test_cb_e8_set_5_b, "cb e8", ignore);
-    opcode_test!(test_cb_e9_set_5_c, "cb e9", ignore);
-    opcode_test!(test_cb_ea_set_5_d, "cb ea", ignore);
-    opcode_test!(test_cb_eb_set_5_e, "cb eb", ignore);
-    opcode_test!(test_cb_ec_set_5_h, "cb ec", ignore);
-    opcode_test!(test_cb_ed_set_5_l, "cb ed", ignore);
-    opcode_test!(test_cb_ee_set_5_hl, "cb ee", ignore);
-    opcode_test!(test_cb_ef_set_5_a, "cb ef", ignore);
+    opcode_test!(test_cb_e8_set_5_b, "cb e8");
+    opcode_test!(test_cb_e9_set_5_c, "cb e9");
+    opcode_test!(test_cb_ea_set_5_d, "cb ea");
+    opcode_test!(test_cb_eb_set_5_e, "cb eb");
+    opcode_test!(test_cb_ec_set_5_h, "cb ec");
+    opcode_test!(test_cb_ed_set_5_l, "cb ed");
+    opcode_test!(test_cb_ee_set_5_hl, "cb ee");
+    opcode_test!(test_cb_ef_set_5_a, "cb ef");
 
     // 0xF0-0xF7: SET 6,r
-    opcode_test!(test_cb_f0_set_6_b, "cb f0", ignore);
-    opcode_test!(test_cb_f1_set_6_c, "cb f1", ignore);
-    opcode_test!(test_cb_f2_set_6_d, "cb f2", ignore);
-    opcode_test!(test_cb_f3_set_6_e, "cb f3", ignore);
-    opcode_test!(test_cb_f4_set_6_h, "cb f4", ignore);
-    opcode_test!(test_cb_f5_set_6_l, "cb f5", ignore);
-    opcode_test!(test_cb_f6_set_6_hl, "cb f6", ignore);
-    opcode_test!(test_cb_f7_set_6_a, "cb f7", ignore);
+    opcode_test!(test_cb_f0_set_6_b, "cb f0");
+    opcode_test!(test_cb_f1_set_6_c, "cb f1");
+    opcode_test!(test_cb_f2_set_6_d, "cb f2");
+    opcode_test!(test_cb_f3_set_6_e, "cb f3");
+    opcode_test!(test_cb_f4_set_6_h, "cb f4");
+    opcode_test!(test_cb_f5_set_6_l, "cb f5");
+    opcode_test!(test_cb_f6_set_6_hl, "cb f6");
+    opcode_test!(test_cb_f7_set_6_a, "cb f7");
 
     // 0xF8-0xFF: SET 7,r
-    opcode_test!(test_cb_f8_set_7_b, "cb f8", ignore);
-    opcode_test!(test_cb_f9_set_7_c, "cb f9", ignore);
-    opcode_test!(test_cb_fa_set_7_d, "cb fa", ignore);
-    opcode_test!(test_cb_fb_set_7_e, "cb fb", ignore);
-    opcode_test!(test_cb_fc_set_7_h, "cb fc", ignore);
-    opcode_test!(test_cb_fd_set_7_l, "cb fd", ignore);
-    opcode_test!(test_cb_fe_set_7_hl, "cb fe", ignore);
-    opcode_test!(test_cb_ff_set_7_a, "cb ff", ignore);
+    opcode_test!(test_cb_f8_set_7_b, "cb f8");
+    opcode_test!(test_cb_f9_set_7_c, "cb f9");
+    opcode_test!(test_cb_fa_set_7_d, "cb fa");
+    opcode_test!(test_cb_fb_set_7_e, "cb fb");
+    opcode_test!(test_cb_fc_set_7_h, "cb fc");
+    opcode_test!(test_cb_fd_set_7_l, "cb fd");
+    opcode_test!(test_cb_fe_set_7_hl, "cb fe");
+    opcode_test!(test_cb_ff_set_7_a, "cb ff");
 }
