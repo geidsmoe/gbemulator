@@ -631,7 +631,7 @@ mod tests {
     opcode_test!(test_cb_bf_res_7_a, "cb bf");
 
     // 0xC0-0xC7: SET 0,r
-    opcode_test!(test_cb_c0_set_0_b, "cb c0", ignore);
+    opcode_test!(test_cb_c0_set_0_b, "cb c0");
     opcode_test!(test_cb_c1_set_0_c, "cb c1", ignore);
     opcode_test!(test_cb_c2_set_0_d, "cb c2", ignore);
     opcode_test!(test_cb_c3_set_0_e, "cb c3", ignore);

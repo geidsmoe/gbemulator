@@ -301,4 +301,8 @@ impl CPU {
       pub fn reset_bit(&self, value: u8, n: u8) -> u8 {
         value & !(1 << n)
       }
+
+      pub fn set_bit(&self, value: u8, n: u8) -> u8 {
+        value | (1 << n)
+      }
 }

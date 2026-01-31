@@ -303,6 +303,9 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     }
     0xBF => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 7); }
 
+    // 0xC0-0xC7: SET 0, r
+    0xC0 => { cpu.registers.b = cpu.set_bit(cpu.registers.b, 0) }
+
     _ => {
       println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
     }
