@@ -197,10 +197,10 @@ impl CPU {
         result
       }
 
-      pub fn rotate_left_with_carry(&mut self, value: u8, register_name: RegisterNames8) -> u8 {
+      pub fn rotate_left_with_carry(&mut self, value: u8, is_cb_prefixed: bool) -> u8 {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let result = value.rotate_left(1);
-        if register_name == RegisterNames8::A { flags_register.zero = false } else { flags_register.zero = result == 0 } 
+        if is_cb_prefixed { flags_register.zero = result == 0 } else { flags_register.zero = false };
         flags_register.carry = (value & 0x80) != 0;
         flags_register.half_carry = false;
         flags_register.subtract = false;
@@ -208,11 +208,11 @@ impl CPU {
         result
       }
 
-      pub fn rotate_left_through_carry(&mut self, value: u8) -> u8 {
+      pub fn rotate_left_through_carry(&mut self, value: u8, is_cb_prefixed: bool) -> u8 {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let cy = if flags_register.carry { 1 } else { 0 };
         let result = (value << 1) | cy;
-        flags_register.zero = false;
+        if is_cb_prefixed { flags_register.zero = result == 0 } else { flags_register.zero = false };
         flags_register.carry = (value & 0x80) != 0;
         flags_register.half_carry = false;
         flags_register.subtract = false;
@@ -220,10 +220,10 @@ impl CPU {
         result
       }
 
-      pub fn rotate_right_with_carry(&mut self, value: u8) -> u8 {
+      pub fn rotate_right_with_carry(&mut self, value: u8, is_cb_prefixed: bool) -> u8 {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let result = value.rotate_right(1);
-        flags_register.zero = false;
+        if is_cb_prefixed { flags_register.zero = result == 0 } else { flags_register.zero = false };
         flags_register.carry = (value & 0x01) != 0;
         flags_register.half_carry = false;
         flags_register.subtract = false;
@@ -231,14 +231,60 @@ impl CPU {
         result
       }
 
-      pub fn rotate_right_through_carry(&mut self, value: u8) -> u8 {
+      pub fn rotate_right_through_carry(&mut self, value: u8, is_cb_prefixed: bool) -> u8 {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let cy = if flags_register.carry { 1 } else { 0 };
         let result = (value >> 1) | (cy << 7);
-        flags_register.zero = false;
+        if is_cb_prefixed { flags_register.zero = result == 0 } else { flags_register.zero = false };
         flags_register.carry = (value & 0x01) != 0;
         flags_register.half_carry = false;
         flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn shift_left_arithmetic(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = value << 1;
+        flags_register.zero = result == 0;
+        flags_register.carry = (value & 0x80) != 0;
+        flags_register.half_carry = false;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn shift_right_arithmetic(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = (value >> 1) | (value & 0x80); // preserve bit 7
+        flags_register.zero = result == 0;
+        flags_register.carry = (value & 0x01) != 0;
+        flags_register.half_carry = false;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn shift_right_logical(&mut self, value: u8) -> u8 {
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        let result = value >> 1;
+        flags_register.zero = result == 0;
+        flags_register.carry = (value & 0x01) != 0;
+        flags_register.half_carry = false;
+        flags_register.subtract = false;
+        self.registers.f = u8::from(flags_register);
+        result
+      }
+
+      pub fn swap_nibbles(&mut self, value: u8) -> u8 {
+        let lsn = value & 0x0F;
+        let msn = value >> 4;
+        let result = (lsn << 4) | msn;
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        flags_register.zero = result == 0;
+        flags_register.subtract = false;
+        flags_register.half_carry = false;
+        flags_register.carry = false;
         self.registers.f = u8::from(flags_register);
         result
       }

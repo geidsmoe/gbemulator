@@ -15,9 +15,110 @@ use crate::instructions::*;
 
 pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opcode: u8) {
   match opcode {
-    0x00 => {
-      cpu.registers.b = cpu.rotate_left_with_carry(cpu.registers.b, RegisterNames8::B);
+    // 0x00-0x07: RLC r
+    0x00 => { cpu.registers.b = cpu.rotate_left_with_carry(cpu.registers.b, true); }
+    0x01 => { cpu.registers.c = cpu.rotate_left_with_carry(cpu.registers.c, true); }
+    0x02 => { cpu.registers.d = cpu.rotate_left_with_carry(cpu.registers.d, true); }
+    0x03 => { cpu.registers.e = cpu.rotate_left_with_carry(cpu.registers.e, true); }
+    0x04 => { cpu.registers.h = cpu.rotate_left_with_carry(cpu.registers.h, true); }
+    0x05 => { cpu.registers.l = cpu.rotate_left_with_carry(cpu.registers.l, true); }
+    0x06 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.rotate_left_with_carry(cpu.ram[addr], true);
     }
+    0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a, true); }
+
+    // 0x08-0x0F: RRC r
+    0x08 => { cpu.registers.b = cpu.rotate_right_with_carry(cpu.registers.b, true); }
+    0x09 => { cpu.registers.c = cpu.rotate_right_with_carry(cpu.registers.c, true); }
+    0x0A => { cpu.registers.d = cpu.rotate_right_with_carry(cpu.registers.d, true); }
+    0x0B => { cpu.registers.e = cpu.rotate_right_with_carry(cpu.registers.e, true); }
+    0x0C => { cpu.registers.h = cpu.rotate_right_with_carry(cpu.registers.h, true); }
+    0x0D => { cpu.registers.l = cpu.rotate_right_with_carry(cpu.registers.l, true); }
+    0x0E => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.rotate_right_with_carry(cpu.ram[addr], true);
+    }
+    0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a, true); }
+
+    // 0x10-0x17: RL r
+    0x10 => { cpu.registers.b = cpu.rotate_left_through_carry(cpu.registers.b, true); }
+    0x11 => { cpu.registers.c = cpu.rotate_left_through_carry(cpu.registers.c, true); }
+    0x12 => { cpu.registers.d = cpu.rotate_left_through_carry(cpu.registers.d, true); }
+    0x13 => { cpu.registers.e = cpu.rotate_left_through_carry(cpu.registers.e, true); }
+    0x14 => { cpu.registers.h = cpu.rotate_left_through_carry(cpu.registers.h, true); }
+    0x15 => { cpu.registers.l = cpu.rotate_left_through_carry(cpu.registers.l, true); }
+    0x16 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.rotate_left_through_carry(cpu.ram[addr], true);
+    }
+    0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a, true); }
+
+    // 0x18-0x1F: RR r
+    0x18 => { cpu.registers.b = cpu.rotate_right_through_carry(cpu.registers.b, true); }
+    0x19 => { cpu.registers.c = cpu.rotate_right_through_carry(cpu.registers.c, true); }
+    0x1A => { cpu.registers.d = cpu.rotate_right_through_carry(cpu.registers.d, true); }
+    0x1B => { cpu.registers.e = cpu.rotate_right_through_carry(cpu.registers.e, true); }
+    0x1C => { cpu.registers.h = cpu.rotate_right_through_carry(cpu.registers.h, true); }
+    0x1D => { cpu.registers.l = cpu.rotate_right_through_carry(cpu.registers.l, true); }
+    0x1E => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.rotate_right_through_carry(cpu.ram[addr], true);
+    }
+    0x1F => { cpu.registers.a = cpu.rotate_right_through_carry(cpu.registers.a, true); }
+
+    // 0x20-0x27: SLA r
+    0x20 => { cpu.registers.b = cpu.shift_left_arithmetic(cpu.registers.b); }
+    0x21 => { cpu.registers.c = cpu.shift_left_arithmetic(cpu.registers.c); }
+    0x22 => { cpu.registers.d = cpu.shift_left_arithmetic(cpu.registers.d); }
+    0x23 => { cpu.registers.e = cpu.shift_left_arithmetic(cpu.registers.e); }
+    0x24 => { cpu.registers.h = cpu.shift_left_arithmetic(cpu.registers.h); }
+    0x25 => { cpu.registers.l = cpu.shift_left_arithmetic(cpu.registers.l); }
+    0x26 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.shift_left_arithmetic(cpu.ram[addr]);
+    }
+    0x27 => { cpu.registers.a = cpu.shift_left_arithmetic(cpu.registers.a); }
+
+    // 0x28-0x2F: SRA r
+    0x28 => { cpu.registers.b = cpu.shift_right_arithmetic(cpu.registers.b); }
+    0x29 => { cpu.registers.c = cpu.shift_right_arithmetic(cpu.registers.c); }
+    0x2A => { cpu.registers.d = cpu.shift_right_arithmetic(cpu.registers.d); }
+    0x2B => { cpu.registers.e = cpu.shift_right_arithmetic(cpu.registers.e); }
+    0x2C => { cpu.registers.h = cpu.shift_right_arithmetic(cpu.registers.h); }
+    0x2D => { cpu.registers.l = cpu.shift_right_arithmetic(cpu.registers.l); }
+    0x2E => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.shift_right_arithmetic(cpu.ram[addr]);
+    }
+    0x2F => { cpu.registers.a = cpu.shift_right_arithmetic(cpu.registers.a); }
+
+    // 0x30-0x37: SWAP r
+    0x30 => { cpu.registers.b = cpu.swap_nibbles(cpu.registers.b); }
+    0x31 => { cpu.registers.c = cpu.swap_nibbles(cpu.registers.c); }
+    0x32 => { cpu.registers.d = cpu.swap_nibbles(cpu.registers.d); }
+    0x33 => { cpu.registers.e = cpu.swap_nibbles(cpu.registers.e); }
+    0x34 => { cpu.registers.h = cpu.swap_nibbles(cpu.registers.h); }
+    0x35 => { cpu.registers.l = cpu.swap_nibbles(cpu.registers.l); }
+    0x36 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.swap_nibbles(cpu.ram[addr]);
+    }
+    0x37 => { cpu.registers.a = cpu.swap_nibbles(cpu.registers.a); }
+
+    // 0x38-0x3F: SRL r
+    0x38 => { cpu.registers.b = cpu.shift_right_logical(cpu.registers.b); }
+    0x39 => { cpu.registers.c = cpu.shift_right_logical(cpu.registers.c); }
+    0x3A => { cpu.registers.d = cpu.shift_right_logical(cpu.registers.d); }
+    0x3B => { cpu.registers.e = cpu.shift_right_logical(cpu.registers.e); }
+    0x3C => { cpu.registers.h = cpu.shift_right_logical(cpu.registers.h); }
+    0x3D => { cpu.registers.l = cpu.shift_right_logical(cpu.registers.l); }
+    0x3E => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.shift_right_logical(cpu.ram[addr]);
+    }
+    0x3F => { cpu.registers.a = cpu.shift_right_logical(cpu.registers.a); }
+
     _ => {
       println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
     }
@@ -31,10 +132,10 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) {
       0x00 => { /* NO OP */ }
       0x10 => { /* TODO IMPLEMENT STOP */}
       0xF3 => { /* TODO IMPLEMENT DI (Reset the interrupt master enable (IME) flag and prohibit maskable interrupts.) */}
-      0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a, RegisterNames8::A) }
-      0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a) }
-      0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a) }
-      0x1F => { cpu.registers.a = cpu.rotate_right_through_carry(cpu.registers.a) }
+      0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a, false) }
+      0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a, false) }
+      0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a, false) }
+      0x1F => { cpu.registers.a = cpu.rotate_right_through_carry(cpu.registers.a, false) }
       0x2F => { 
         let mut flags_register = FlagsRegister::from(cpu.registers.f);
         flags_register.subtract = true;
