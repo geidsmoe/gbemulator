@@ -494,18 +494,27 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x28 => {
       if FlagsRegister::from(cpu.registers.f).zero {
         cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x30 => {
       if !FlagsRegister::from(cpu.registers.f).carry {
         cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x38 => {
       if FlagsRegister::from(cpu.registers.f).carry {
         cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
       cpu.pc = cpu.pc.wrapping_add(1);
     }
@@ -928,8 +937,10 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xC2 => {
       if !FlagsRegister::from(cpu.registers.f).zero {
         cpu.pc = cpu.read_u16_at_pc();
+        cycles = *instruction.cycles.first().unwrap();
       } else {
         cpu.pc = cpu.pc.wrapping_add(2);
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xC3 => {
@@ -938,23 +949,29 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xCA => {
       if FlagsRegister::from(cpu.registers.f).zero {
         cpu.pc = cpu.read_u16_at_pc();
+        cycles = *instruction.cycles.first().unwrap();
       } else {
         cpu.pc = cpu.pc.wrapping_add(2);
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xD2 => {
       if !FlagsRegister::from(cpu.registers.f).carry {
         cpu.pc = cpu.read_u16_at_pc();
+        cycles = *instruction.cycles.first().unwrap();
       } else {
-        cpu.pc = cpu.pc.wrapping_add(2)
+        cpu.pc = cpu.pc.wrapping_add(2);
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xDA => {
       if FlagsRegister::from(cpu.registers.f).carry {
         cpu.pc = cpu.read_u16_at_pc();
+        cycles = *instruction.cycles.first().unwrap();
       } else {
-        cpu.pc = cpu.pc.wrapping_add(2)
-      } 
+        cpu.pc = cpu.pc.wrapping_add(2);
+        cycles = *instruction.cycles.get(1).unwrap();
+      }
     }
     0xE9 => {
       cpu.pc = cpu.registers.get_hl();
@@ -967,21 +984,33 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xC0 => {
       if !FlagsRegister::from(cpu.registers.f).zero {
         cpu.pc = cpu.pop();
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xC8 => {
       if FlagsRegister::from(cpu.registers.f).zero {
         cpu.pc = cpu.pop();
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xD0 => {
       if !FlagsRegister::from(cpu.registers.f).carry {
         cpu.pc = cpu.pop();
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xD8 => {
       if FlagsRegister::from(cpu.registers.f).carry {
         cpu.pc = cpu.pop();
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xD9 => {
@@ -1004,13 +1033,12 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
         let lsb = cpu.ram[cpu.pc as usize];
         let msb = cpu.ram[(cpu.pc + 1) as usize];
         let next_address: u16 = two_bytes_to_u16(lsb, msb);
-        
-        // push current PC onto the stack
         cpu.push(cpu.pc + 2);
-        // set the PC to be A16
         cpu.pc = next_address;
+        cycles = *instruction.cycles.first().unwrap();
       } else {
         cpu.pc += 2;
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xC4 => {
@@ -1018,13 +1046,12 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
         let lsb = cpu.ram[cpu.pc as usize];
         let msb = cpu.ram[(cpu.pc + 1) as usize];
         let next_address: u16 = two_bytes_to_u16(lsb, msb);
-        
-        // push current PC onto the stack
         cpu.push(cpu.pc + 2);
-        // set the PC to be A16
         cpu.pc = next_address;
+        cycles = *instruction.cycles.first().unwrap();
       } else {
         cpu.pc += 2;
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xD4 => {
@@ -1032,12 +1059,12 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
         let lsb = cpu.ram[cpu.pc as usize];
         let msb = cpu.ram[(cpu.pc + 1) as usize];
         let next_address: u16 = two_bytes_to_u16(lsb, msb);
-        // push current PC onto the stack
         cpu.push(cpu.pc + 2);
-        // set the PC to be A16
         cpu.pc = next_address;
+        cycles = *instruction.cycles.first().unwrap();
       } else {
         cpu.pc += 2;
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     0xDC => {
@@ -1045,13 +1072,12 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
         let lsb = cpu.ram[cpu.pc as usize];
         let msb = cpu.ram[(cpu.pc + 1) as usize];
         let next_address: u16 = two_bytes_to_u16(lsb, msb);
-        
-        // push current PC onto the stack
         cpu.push(cpu.pc + 2);
-        // set the PC to be A16
         cpu.pc = next_address;
+        cycles = *instruction.cycles.first().unwrap();
       } else {
         cpu.pc += 2;
+        cycles = *instruction.cycles.get(1).unwrap();
       }
     }
     /* END CALL OPCODES */
