@@ -13,9 +13,15 @@ use crate::registers::{FlagsRegister, RegisterNames8, RegisterNames16};
 
 use crate::instructions::*;
 
+pub fn gameboy_doctor_cpu_log(cpu: &CPU) {
+  //prints A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
+  println!("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
+              cpu.registers.a, cpu.registers.f, cpu.registers.b, cpu.registers.c, cpu.registers.d, cpu.registers.e, cpu.registers.h, cpu.registers.l, cpu.sp, cpu.pc, cpu.ram[cpu.pc as usize], cpu.ram[(cpu.pc+1) as usize], cpu.ram[(cpu.pc+2) as usize], cpu.ram[(cpu.pc+3) as usize]);
+}
+
 pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opcode: u8) -> u32 {
   let mut cycles: u32 = 0;
-  println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
+  //println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
   match opcode {
     // 0x00-0x07: RLC r
     0x00 => { cpu.registers.b = cpu.rotate_left_with_carry(cpu.registers.b, true); }
@@ -420,7 +426,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
   let opcode = cpu.ram[cpu.pc as usize];
   let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
-  println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
+  //println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
   let mut cycles: u32 = 0;
   cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
   match opcode  {
@@ -1130,12 +1136,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let reader = BufReader::new(file);
   let instruction_set: InstructionSet = serde_json::from_reader(reader)?; 
 
-  let mut cpu = CPU::new();
+  let mut cpu = CPU::gb_doctor_cpu();
 
   let file_path = "gb-test-roms-master/cpu_instrs/individual/10-bit ops.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
 
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
+  cpu.ram[0xFF44] = 0x90;
 
   /*
   Metadata fields
@@ -1161,11 +1168,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   //let cartridge_title = str::from_utf8(&cpu.ram[0x134..0x143])?;
   //println!("Cartridge title: {}", cartridge_title);
 
-
+  gameboy_doctor_cpu_log(&cpu);
 
   loop {
     let cycles = execute_opcode(&instruction_set, &mut cpu);
-    
+    gameboy_doctor_cpu_log(&cpu);
   }
 
   Ok(())

@@ -41,7 +41,13 @@ pub struct CPU {
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x100, sp: 0xFFFF, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0 }
+        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0 }
+    }
+
+    pub fn gb_doctor_cpu() -> CPU {
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0 };
+      gb_doctor_cpu.ram[0xFF44] = 0x90;
+      gb_doctor_cpu
     }
 
     pub fn pop(&mut self) -> u16 {

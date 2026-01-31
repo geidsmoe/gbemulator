@@ -92,6 +92,10 @@ impl Registers8 {
   pub fn new () -> Registers8 {
     return Registers8 { ..Default::default() }
   }
+
+  pub fn gb_doctor_values () -> Registers8 {
+    return Registers8 { a: 0x01, b: 0x00, c: 0x13, d: 0x00, e: 0xD8, f: 0xB0, h: 0x01, l: 0x4D }
+  }
 }
 
 // Represents the 'f' register, whose most significant nibble contains 4 flags
