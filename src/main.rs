@@ -119,6 +119,9 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     }
     0x3F => { cpu.registers.a = cpu.shift_right_logical(cpu.registers.a); }
 
+    // 0x40-0x7F
+    0x40 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 0) }
+
     _ => {
       println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);
     }

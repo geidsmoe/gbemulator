@@ -288,4 +288,13 @@ impl CPU {
         self.registers.f = u8::from(flags_register);
         result
       }
+
+      pub fn copy_bit_n_to_zero_flag(&mut self, value: u8, n: u8) {
+        let bit: u8 = value & (1 << n);
+        let mut flags_register = FlagsRegister::from(self.registers.f);
+        flags_register.zero = bit == 0;
+        flags_register.subtract = false;
+        flags_register.half_carry = true;
+        self.registers.f = u8::from(flags_register);
+      }
 }

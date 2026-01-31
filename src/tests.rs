@@ -471,7 +471,7 @@ mod tests {
     opcode_test!(test_cb_3f_srl_a, "cb 3f");
 
     // 0x40-0x47: BIT 0,r
-    opcode_test!(test_cb_40_bit_0_b, "cb 40", ignore);
+    opcode_test!(test_cb_40_bit_0_b, "cb 40");
     opcode_test!(test_cb_41_bit_0_c, "cb 41", ignore);
     opcode_test!(test_cb_42_bit_0_d, "cb 42", ignore);
     opcode_test!(test_cb_43_bit_0_e, "cb 43", ignore);
