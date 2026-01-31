@@ -119,8 +119,189 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     }
     0x3F => { cpu.registers.a = cpu.shift_right_logical(cpu.registers.a); }
 
-    // 0x40-0x7F
-    0x40 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 0) }
+    // 0x40-0x47: BIT 0,r
+    0x40 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 0); }
+    0x41 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 0); }
+    0x42 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 0); }
+    0x43 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 0); }
+    0x44 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 0); }
+    0x45 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 0); }
+    0x46 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 0); }
+    0x47 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 0); }
+
+    // 0x48-0x4F: BIT 1,r
+    0x48 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 1); }
+    0x49 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 1); }
+    0x4A => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 1); }
+    0x4B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 1); }
+    0x4C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 1); }
+    0x4D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 1); }
+    0x4E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 1); }
+    0x4F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 1); }
+
+    // 0x50-0x57: BIT 2,r
+    0x50 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 2); }
+    0x51 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 2); }
+    0x52 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 2); }
+    0x53 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 2); }
+    0x54 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 2); }
+    0x55 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 2); }
+    0x56 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 2); }
+    0x57 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 2); }
+
+    // 0x58-0x5F: BIT 3,r
+    0x58 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 3); }
+    0x59 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 3); }
+    0x5A => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 3); }
+    0x5B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 3); }
+    0x5C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 3); }
+    0x5D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 3); }
+    0x5E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 3); }
+    0x5F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 3); }
+
+    // 0x60-0x67: BIT 4,r
+    0x60 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 4); }
+    0x61 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 4); }
+    0x62 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 4); }
+    0x63 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 4); }
+    0x64 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 4); }
+    0x65 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 4); }
+    0x66 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 4); }
+    0x67 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 4); }
+
+    // 0x68-0x6F: BIT 5,r
+    0x68 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 5); }
+    0x69 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 5); }
+    0x6A => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 5); }
+    0x6B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 5); }
+    0x6C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 5); }
+    0x6D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 5); }
+    0x6E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 5); }
+    0x6F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 5); }
+
+    // 0x70-0x77: BIT 6,r
+    0x70 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 6); }
+    0x71 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 6); }
+    0x72 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 6); }
+    0x73 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 6); }
+    0x74 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 6); }
+    0x75 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 6); }
+    0x76 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 6); }
+    0x77 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 6); }
+
+    // 0x78-0x7F: BIT 7,r
+    0x78 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.b, 7); }
+    0x79 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.c, 7); }
+    0x7A => { cpu.copy_bit_n_to_zero_flag(cpu.registers.d, 7); }
+    0x7B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 7); }
+    0x7C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 7); }
+    0x7D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 7); }
+    0x7E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 7); }
+    0x7F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 7); }
+
+    // 0x80-0x87: RES 0,r
+    0x80 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 0); }
+    0x81 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 0); }
+    0x82 => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 0); }
+    0x83 => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 0); }
+    0x84 => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 0); }
+    0x85 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 0); }
+    0x86 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 0);
+    }
+    0x87 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 0); }
+
+    // 0x88-0x8F: RES 1,r
+    0x88 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 1); }
+    0x89 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 1); }
+    0x8A => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 1); }
+    0x8B => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 1); }
+    0x8C => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 1); }
+    0x8D => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 1); }
+    0x8E => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 1);
+    }
+    0x8F => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 1); }
+
+    // 0x90-0x97: RES 2,r
+    0x90 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 2); }
+    0x91 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 2); }
+    0x92 => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 2); }
+    0x93 => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 2); }
+    0x94 => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 2); }
+    0x95 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 2); }
+    0x96 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 2);
+    }
+    0x97 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 2); }
+
+    // 0x98-0x9F: RES 3,r
+    0x98 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 3); }
+    0x99 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 3); }
+    0x9A => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 3); }
+    0x9B => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 3); }
+    0x9C => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 3); }
+    0x9D => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 3); }
+    0x9E => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 3);
+    }
+    0x9F => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 3); }
+
+    // 0xA0-0xA7: RES 4,r
+    0xA0 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 4); }
+    0xA1 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 4); }
+    0xA2 => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 4); }
+    0xA3 => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 4); }
+    0xA4 => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 4); }
+    0xA5 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 4); }
+    0xA6 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 4);
+    }
+    0xA7 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 4); }
+
+    // 0xA8-0xAF: RES 5,r
+    0xA8 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 5); }
+    0xA9 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 5); }
+    0xAA => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 5); }
+    0xAB => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 5); }
+    0xAC => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 5); }
+    0xAD => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 5); }
+    0xAE => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 5);
+    }
+    0xAF => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 5); }
+
+    // 0xB0-0xB7: RES 6,r
+    0xB0 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 6); }
+    0xB1 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 6); }
+    0xB2 => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 6); }
+    0xB3 => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 6); }
+    0xB4 => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 6); }
+    0xB5 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 6); }
+    0xB6 => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 6);
+    }
+    0xB7 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 6); }
+
+    // 0xB8-0xBF: RES 7,r
+    0xB8 => { cpu.registers.b = cpu.reset_bit(cpu.registers.b, 7); }
+    0xB9 => { cpu.registers.c = cpu.reset_bit(cpu.registers.c, 7); }
+    0xBA => { cpu.registers.d = cpu.reset_bit(cpu.registers.d, 7); }
+    0xBB => { cpu.registers.e = cpu.reset_bit(cpu.registers.e, 7); }
+    0xBC => { cpu.registers.h = cpu.reset_bit(cpu.registers.h, 7); }
+    0xBD => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 7); }
+    0xBE => {
+      let addr = cpu.registers.get_hl() as usize;
+      cpu.ram[addr] = cpu.reset_bit(cpu.ram[addr], 7);
+    }
+    0xBF => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 7); }
 
     _ => {
       println!("{:#04X}: {} {:#?} CB Prefixed opcode not implemented", opcode, instruction.mnemonic, instruction.operands);

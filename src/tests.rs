@@ -472,163 +472,163 @@ mod tests {
 
     // 0x40-0x47: BIT 0,r
     opcode_test!(test_cb_40_bit_0_b, "cb 40");
-    opcode_test!(test_cb_41_bit_0_c, "cb 41", ignore);
-    opcode_test!(test_cb_42_bit_0_d, "cb 42", ignore);
-    opcode_test!(test_cb_43_bit_0_e, "cb 43", ignore);
-    opcode_test!(test_cb_44_bit_0_h, "cb 44", ignore);
-    opcode_test!(test_cb_45_bit_0_l, "cb 45", ignore);
-    opcode_test!(test_cb_46_bit_0_hl, "cb 46", ignore);
-    opcode_test!(test_cb_47_bit_0_a, "cb 47", ignore);
+    opcode_test!(test_cb_41_bit_0_c, "cb 41");
+    opcode_test!(test_cb_42_bit_0_d, "cb 42");
+    opcode_test!(test_cb_43_bit_0_e, "cb 43");
+    opcode_test!(test_cb_44_bit_0_h, "cb 44");
+    opcode_test!(test_cb_45_bit_0_l, "cb 45");
+    opcode_test!(test_cb_46_bit_0_hl, "cb 46");
+    opcode_test!(test_cb_47_bit_0_a, "cb 47");
 
     // 0x48-0x4F: BIT 1,r
-    opcode_test!(test_cb_48_bit_1_b, "cb 48", ignore);
-    opcode_test!(test_cb_49_bit_1_c, "cb 49", ignore);
-    opcode_test!(test_cb_4a_bit_1_d, "cb 4a", ignore);
-    opcode_test!(test_cb_4b_bit_1_e, "cb 4b", ignore);
-    opcode_test!(test_cb_4c_bit_1_h, "cb 4c", ignore);
-    opcode_test!(test_cb_4d_bit_1_l, "cb 4d", ignore);
-    opcode_test!(test_cb_4e_bit_1_hl, "cb 4e", ignore);
-    opcode_test!(test_cb_4f_bit_1_a, "cb 4f", ignore);
+    opcode_test!(test_cb_48_bit_1_b, "cb 48");
+    opcode_test!(test_cb_49_bit_1_c, "cb 49");
+    opcode_test!(test_cb_4a_bit_1_d, "cb 4a");
+    opcode_test!(test_cb_4b_bit_1_e, "cb 4b");
+    opcode_test!(test_cb_4c_bit_1_h, "cb 4c");
+    opcode_test!(test_cb_4d_bit_1_l, "cb 4d");
+    opcode_test!(test_cb_4e_bit_1_hl, "cb 4e");
+    opcode_test!(test_cb_4f_bit_1_a, "cb 4f");
 
     // 0x50-0x57: BIT 2,r
-    opcode_test!(test_cb_50_bit_2_b, "cb 50", ignore);
-    opcode_test!(test_cb_51_bit_2_c, "cb 51", ignore);
-    opcode_test!(test_cb_52_bit_2_d, "cb 52", ignore);
-    opcode_test!(test_cb_53_bit_2_e, "cb 53", ignore);
-    opcode_test!(test_cb_54_bit_2_h, "cb 54", ignore);
-    opcode_test!(test_cb_55_bit_2_l, "cb 55", ignore);
-    opcode_test!(test_cb_56_bit_2_hl, "cb 56", ignore);
-    opcode_test!(test_cb_57_bit_2_a, "cb 57", ignore);
+    opcode_test!(test_cb_50_bit_2_b, "cb 50");
+    opcode_test!(test_cb_51_bit_2_c, "cb 51");
+    opcode_test!(test_cb_52_bit_2_d, "cb 52");
+    opcode_test!(test_cb_53_bit_2_e, "cb 53");
+    opcode_test!(test_cb_54_bit_2_h, "cb 54");
+    opcode_test!(test_cb_55_bit_2_l, "cb 55");
+    opcode_test!(test_cb_56_bit_2_hl, "cb 56");
+    opcode_test!(test_cb_57_bit_2_a, "cb 57");
 
     // 0x58-0x5F: BIT 3,r
-    opcode_test!(test_cb_58_bit_3_b, "cb 58", ignore);
-    opcode_test!(test_cb_59_bit_3_c, "cb 59", ignore);
-    opcode_test!(test_cb_5a_bit_3_d, "cb 5a", ignore);
-    opcode_test!(test_cb_5b_bit_3_e, "cb 5b", ignore);
-    opcode_test!(test_cb_5c_bit_3_h, "cb 5c", ignore);
-    opcode_test!(test_cb_5d_bit_3_l, "cb 5d", ignore);
-    opcode_test!(test_cb_5e_bit_3_hl, "cb 5e", ignore);
-    opcode_test!(test_cb_5f_bit_3_a, "cb 5f", ignore);
+    opcode_test!(test_cb_58_bit_3_b, "cb 58");
+    opcode_test!(test_cb_59_bit_3_c, "cb 59");
+    opcode_test!(test_cb_5a_bit_3_d, "cb 5a");
+    opcode_test!(test_cb_5b_bit_3_e, "cb 5b");
+    opcode_test!(test_cb_5c_bit_3_h, "cb 5c");
+    opcode_test!(test_cb_5d_bit_3_l, "cb 5d");
+    opcode_test!(test_cb_5e_bit_3_hl, "cb 5e");
+    opcode_test!(test_cb_5f_bit_3_a, "cb 5f");
 
     // 0x60-0x67: BIT 4,r
-    opcode_test!(test_cb_60_bit_4_b, "cb 60", ignore);
-    opcode_test!(test_cb_61_bit_4_c, "cb 61", ignore);
-    opcode_test!(test_cb_62_bit_4_d, "cb 62", ignore);
-    opcode_test!(test_cb_63_bit_4_e, "cb 63", ignore);
-    opcode_test!(test_cb_64_bit_4_h, "cb 64", ignore);
-    opcode_test!(test_cb_65_bit_4_l, "cb 65", ignore);
-    opcode_test!(test_cb_66_bit_4_hl, "cb 66", ignore);
-    opcode_test!(test_cb_67_bit_4_a, "cb 67", ignore);
+    opcode_test!(test_cb_60_bit_4_b, "cb 60");
+    opcode_test!(test_cb_61_bit_4_c, "cb 61");
+    opcode_test!(test_cb_62_bit_4_d, "cb 62");
+    opcode_test!(test_cb_63_bit_4_e, "cb 63");
+    opcode_test!(test_cb_64_bit_4_h, "cb 64");
+    opcode_test!(test_cb_65_bit_4_l, "cb 65");
+    opcode_test!(test_cb_66_bit_4_hl, "cb 66");
+    opcode_test!(test_cb_67_bit_4_a, "cb 67");
 
     // 0x68-0x6F: BIT 5,r
-    opcode_test!(test_cb_68_bit_5_b, "cb 68", ignore);
-    opcode_test!(test_cb_69_bit_5_c, "cb 69", ignore);
-    opcode_test!(test_cb_6a_bit_5_d, "cb 6a", ignore);
-    opcode_test!(test_cb_6b_bit_5_e, "cb 6b", ignore);
-    opcode_test!(test_cb_6c_bit_5_h, "cb 6c", ignore);
-    opcode_test!(test_cb_6d_bit_5_l, "cb 6d", ignore);
-    opcode_test!(test_cb_6e_bit_5_hl, "cb 6e", ignore);
-    opcode_test!(test_cb_6f_bit_5_a, "cb 6f", ignore);
+    opcode_test!(test_cb_68_bit_5_b, "cb 68");
+    opcode_test!(test_cb_69_bit_5_c, "cb 69");
+    opcode_test!(test_cb_6a_bit_5_d, "cb 6a");
+    opcode_test!(test_cb_6b_bit_5_e, "cb 6b");
+    opcode_test!(test_cb_6c_bit_5_h, "cb 6c");
+    opcode_test!(test_cb_6d_bit_5_l, "cb 6d");
+    opcode_test!(test_cb_6e_bit_5_hl, "cb 6e");
+    opcode_test!(test_cb_6f_bit_5_a, "cb 6f");
 
     // 0x70-0x77: BIT 6,r
-    opcode_test!(test_cb_70_bit_6_b, "cb 70", ignore);
-    opcode_test!(test_cb_71_bit_6_c, "cb 71", ignore);
-    opcode_test!(test_cb_72_bit_6_d, "cb 72", ignore);
-    opcode_test!(test_cb_73_bit_6_e, "cb 73", ignore);
-    opcode_test!(test_cb_74_bit_6_h, "cb 74", ignore);
-    opcode_test!(test_cb_75_bit_6_l, "cb 75", ignore);
-    opcode_test!(test_cb_76_bit_6_hl, "cb 76", ignore);
-    opcode_test!(test_cb_77_bit_6_a, "cb 77", ignore);
+    opcode_test!(test_cb_70_bit_6_b, "cb 70");
+    opcode_test!(test_cb_71_bit_6_c, "cb 71");
+    opcode_test!(test_cb_72_bit_6_d, "cb 72");
+    opcode_test!(test_cb_73_bit_6_e, "cb 73");
+    opcode_test!(test_cb_74_bit_6_h, "cb 74");
+    opcode_test!(test_cb_75_bit_6_l, "cb 75");
+    opcode_test!(test_cb_76_bit_6_hl, "cb 76");
+    opcode_test!(test_cb_77_bit_6_a, "cb 77");
 
     // 0x78-0x7F: BIT 7,r
-    opcode_test!(test_cb_78_bit_7_b, "cb 78", ignore);
-    opcode_test!(test_cb_79_bit_7_c, "cb 79", ignore);
-    opcode_test!(test_cb_7a_bit_7_d, "cb 7a", ignore);
-    opcode_test!(test_cb_7b_bit_7_e, "cb 7b", ignore);
-    opcode_test!(test_cb_7c_bit_7_h, "cb 7c", ignore);
-    opcode_test!(test_cb_7d_bit_7_l, "cb 7d", ignore);
-    opcode_test!(test_cb_7e_bit_7_hl, "cb 7e", ignore);
-    opcode_test!(test_cb_7f_bit_7_a, "cb 7f", ignore);
+    opcode_test!(test_cb_78_bit_7_b, "cb 78");
+    opcode_test!(test_cb_79_bit_7_c, "cb 79");
+    opcode_test!(test_cb_7a_bit_7_d, "cb 7a");
+    opcode_test!(test_cb_7b_bit_7_e, "cb 7b");
+    opcode_test!(test_cb_7c_bit_7_h, "cb 7c");
+    opcode_test!(test_cb_7d_bit_7_l, "cb 7d");
+    opcode_test!(test_cb_7e_bit_7_hl, "cb 7e");
+    opcode_test!(test_cb_7f_bit_7_a, "cb 7f");
 
     // 0x80-0x87: RES 0,r
-    opcode_test!(test_cb_80_res_0_b, "cb 80", ignore);
-    opcode_test!(test_cb_81_res_0_c, "cb 81", ignore);
-    opcode_test!(test_cb_82_res_0_d, "cb 82", ignore);
-    opcode_test!(test_cb_83_res_0_e, "cb 83", ignore);
-    opcode_test!(test_cb_84_res_0_h, "cb 84", ignore);
-    opcode_test!(test_cb_85_res_0_l, "cb 85", ignore);
-    opcode_test!(test_cb_86_res_0_hl, "cb 86", ignore);
-    opcode_test!(test_cb_87_res_0_a, "cb 87", ignore);
+    opcode_test!(test_cb_80_res_0_b, "cb 80");
+    opcode_test!(test_cb_81_res_0_c, "cb 81");
+    opcode_test!(test_cb_82_res_0_d, "cb 82");
+    opcode_test!(test_cb_83_res_0_e, "cb 83");
+    opcode_test!(test_cb_84_res_0_h, "cb 84");
+    opcode_test!(test_cb_85_res_0_l, "cb 85");
+    opcode_test!(test_cb_86_res_0_hl, "cb 86");
+    opcode_test!(test_cb_87_res_0_a, "cb 87");
 
     // 0x88-0x8F: RES 1,r
-    opcode_test!(test_cb_88_res_1_b, "cb 88", ignore);
-    opcode_test!(test_cb_89_res_1_c, "cb 89", ignore);
-    opcode_test!(test_cb_8a_res_1_d, "cb 8a", ignore);
-    opcode_test!(test_cb_8b_res_1_e, "cb 8b", ignore);
-    opcode_test!(test_cb_8c_res_1_h, "cb 8c", ignore);
-    opcode_test!(test_cb_8d_res_1_l, "cb 8d", ignore);
-    opcode_test!(test_cb_8e_res_1_hl, "cb 8e", ignore);
-    opcode_test!(test_cb_8f_res_1_a, "cb 8f", ignore);
+    opcode_test!(test_cb_88_res_1_b, "cb 88");
+    opcode_test!(test_cb_89_res_1_c, "cb 89");
+    opcode_test!(test_cb_8a_res_1_d, "cb 8a");
+    opcode_test!(test_cb_8b_res_1_e, "cb 8b");
+    opcode_test!(test_cb_8c_res_1_h, "cb 8c");
+    opcode_test!(test_cb_8d_res_1_l, "cb 8d");
+    opcode_test!(test_cb_8e_res_1_hl, "cb 8e");
+    opcode_test!(test_cb_8f_res_1_a, "cb 8f");
 
     // 0x90-0x97: RES 2,r
-    opcode_test!(test_cb_90_res_2_b, "cb 90", ignore);
-    opcode_test!(test_cb_91_res_2_c, "cb 91", ignore);
-    opcode_test!(test_cb_92_res_2_d, "cb 92", ignore);
-    opcode_test!(test_cb_93_res_2_e, "cb 93", ignore);
-    opcode_test!(test_cb_94_res_2_h, "cb 94", ignore);
-    opcode_test!(test_cb_95_res_2_l, "cb 95", ignore);
-    opcode_test!(test_cb_96_res_2_hl, "cb 96", ignore);
-    opcode_test!(test_cb_97_res_2_a, "cb 97", ignore);
+    opcode_test!(test_cb_90_res_2_b, "cb 90");
+    opcode_test!(test_cb_91_res_2_c, "cb 91");
+    opcode_test!(test_cb_92_res_2_d, "cb 92");
+    opcode_test!(test_cb_93_res_2_e, "cb 93");
+    opcode_test!(test_cb_94_res_2_h, "cb 94");
+    opcode_test!(test_cb_95_res_2_l, "cb 95");
+    opcode_test!(test_cb_96_res_2_hl, "cb 96");
+    opcode_test!(test_cb_97_res_2_a, "cb 97");
 
     // 0x98-0x9F: RES 3,r
-    opcode_test!(test_cb_98_res_3_b, "cb 98", ignore);
-    opcode_test!(test_cb_99_res_3_c, "cb 99", ignore);
-    opcode_test!(test_cb_9a_res_3_d, "cb 9a", ignore);
-    opcode_test!(test_cb_9b_res_3_e, "cb 9b", ignore);
-    opcode_test!(test_cb_9c_res_3_h, "cb 9c", ignore);
-    opcode_test!(test_cb_9d_res_3_l, "cb 9d", ignore);
-    opcode_test!(test_cb_9e_res_3_hl, "cb 9e", ignore);
-    opcode_test!(test_cb_9f_res_3_a, "cb 9f", ignore);
+    opcode_test!(test_cb_98_res_3_b, "cb 98");
+    opcode_test!(test_cb_99_res_3_c, "cb 99");
+    opcode_test!(test_cb_9a_res_3_d, "cb 9a");
+    opcode_test!(test_cb_9b_res_3_e, "cb 9b");
+    opcode_test!(test_cb_9c_res_3_h, "cb 9c");
+    opcode_test!(test_cb_9d_res_3_l, "cb 9d");
+    opcode_test!(test_cb_9e_res_3_hl, "cb 9e");
+    opcode_test!(test_cb_9f_res_3_a, "cb 9f");
 
     // 0xA0-0xA7: RES 4,r
-    opcode_test!(test_cb_a0_res_4_b, "cb a0", ignore);
-    opcode_test!(test_cb_a1_res_4_c, "cb a1", ignore);
-    opcode_test!(test_cb_a2_res_4_d, "cb a2", ignore);
-    opcode_test!(test_cb_a3_res_4_e, "cb a3", ignore);
-    opcode_test!(test_cb_a4_res_4_h, "cb a4", ignore);
-    opcode_test!(test_cb_a5_res_4_l, "cb a5", ignore);
-    opcode_test!(test_cb_a6_res_4_hl, "cb a6", ignore);
-    opcode_test!(test_cb_a7_res_4_a, "cb a7", ignore);
+    opcode_test!(test_cb_a0_res_4_b, "cb a0");
+    opcode_test!(test_cb_a1_res_4_c, "cb a1");
+    opcode_test!(test_cb_a2_res_4_d, "cb a2");
+    opcode_test!(test_cb_a3_res_4_e, "cb a3");
+    opcode_test!(test_cb_a4_res_4_h, "cb a4");
+    opcode_test!(test_cb_a5_res_4_l, "cb a5");
+    opcode_test!(test_cb_a6_res_4_hl, "cb a6");
+    opcode_test!(test_cb_a7_res_4_a, "cb a7");
 
     // 0xA8-0xAF: RES 5,r
-    opcode_test!(test_cb_a8_res_5_b, "cb a8", ignore);
-    opcode_test!(test_cb_a9_res_5_c, "cb a9", ignore);
-    opcode_test!(test_cb_aa_res_5_d, "cb aa", ignore);
-    opcode_test!(test_cb_ab_res_5_e, "cb ab", ignore);
-    opcode_test!(test_cb_ac_res_5_h, "cb ac", ignore);
-    opcode_test!(test_cb_ad_res_5_l, "cb ad", ignore);
-    opcode_test!(test_cb_ae_res_5_hl, "cb ae", ignore);
-    opcode_test!(test_cb_af_res_5_a, "cb af", ignore);
+    opcode_test!(test_cb_a8_res_5_b, "cb a8");
+    opcode_test!(test_cb_a9_res_5_c, "cb a9");
+    opcode_test!(test_cb_aa_res_5_d, "cb aa");
+    opcode_test!(test_cb_ab_res_5_e, "cb ab");
+    opcode_test!(test_cb_ac_res_5_h, "cb ac");
+    opcode_test!(test_cb_ad_res_5_l, "cb ad");
+    opcode_test!(test_cb_ae_res_5_hl, "cb ae");
+    opcode_test!(test_cb_af_res_5_a, "cb af");
 
     // 0xB0-0xB7: RES 6,r
-    opcode_test!(test_cb_b0_res_6_b, "cb b0", ignore);
-    opcode_test!(test_cb_b1_res_6_c, "cb b1", ignore);
-    opcode_test!(test_cb_b2_res_6_d, "cb b2", ignore);
-    opcode_test!(test_cb_b3_res_6_e, "cb b3", ignore);
-    opcode_test!(test_cb_b4_res_6_h, "cb b4", ignore);
-    opcode_test!(test_cb_b5_res_6_l, "cb b5", ignore);
-    opcode_test!(test_cb_b6_res_6_hl, "cb b6", ignore);
-    opcode_test!(test_cb_b7_res_6_a, "cb b7", ignore);
+    opcode_test!(test_cb_b0_res_6_b, "cb b0");
+    opcode_test!(test_cb_b1_res_6_c, "cb b1");
+    opcode_test!(test_cb_b2_res_6_d, "cb b2");
+    opcode_test!(test_cb_b3_res_6_e, "cb b3");
+    opcode_test!(test_cb_b4_res_6_h, "cb b4");
+    opcode_test!(test_cb_b5_res_6_l, "cb b5");
+    opcode_test!(test_cb_b6_res_6_hl, "cb b6");
+    opcode_test!(test_cb_b7_res_6_a, "cb b7");
 
     // 0xB8-0xBF: RES 7,r
-    opcode_test!(test_cb_b8_res_7_b, "cb b8", ignore);
-    opcode_test!(test_cb_b9_res_7_c, "cb b9", ignore);
-    opcode_test!(test_cb_ba_res_7_d, "cb ba", ignore);
-    opcode_test!(test_cb_bb_res_7_e, "cb bb", ignore);
-    opcode_test!(test_cb_bc_res_7_h, "cb bc", ignore);
-    opcode_test!(test_cb_bd_res_7_l, "cb bd", ignore);
-    opcode_test!(test_cb_be_res_7_hl, "cb be", ignore);
-    opcode_test!(test_cb_bf_res_7_a, "cb bf", ignore);
+    opcode_test!(test_cb_b8_res_7_b, "cb b8");
+    opcode_test!(test_cb_b9_res_7_c, "cb b9");
+    opcode_test!(test_cb_ba_res_7_d, "cb ba");
+    opcode_test!(test_cb_bb_res_7_e, "cb bb");
+    opcode_test!(test_cb_bc_res_7_h, "cb bc");
+    opcode_test!(test_cb_bd_res_7_l, "cb bd");
+    opcode_test!(test_cb_be_res_7_hl, "cb be");
+    opcode_test!(test_cb_bf_res_7_a, "cb bf");
 
     // 0xC0-0xC7: SET 0,r
     opcode_test!(test_cb_c0_set_0_b, "cb c0", ignore);

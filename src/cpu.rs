@@ -297,4 +297,8 @@ impl CPU {
         flags_register.half_carry = true;
         self.registers.f = u8::from(flags_register);
       }
+
+      pub fn reset_bit(&self, value: u8, n: u8) -> u8 {
+        value & !(1 << n)
+      }
 }
