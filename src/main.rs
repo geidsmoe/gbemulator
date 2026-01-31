@@ -15,6 +15,7 @@ use crate::instructions::*;
 
 pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opcode: u8) -> u32 {
   let mut cycles: u32 = 0;
+  println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
   match opcode {
     // 0x00-0x07: RLC r
     0x00 => { cpu.registers.b = cpu.rotate_left_with_carry(cpu.registers.b, true); }
@@ -419,6 +420,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
   let opcode = cpu.ram[cpu.pc as usize];
   let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
+  println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
   let mut cycles: u32 = 0;
   cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
   match opcode  {
@@ -1113,7 +1115,6 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
       cycles = execute_cb_prefixed_opcode(cpu, instruction, opcode);
     }
     _ => {
-      let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
       panic!("{:#04X} {:#04X}: {} {:#?} Undefined opcode - this shouldn't have happened!\n", cpu.pc, opcode, instruction.mnemonic, instruction.operands);
     }
   }
@@ -1131,7 +1132,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let mut cpu = CPU::new();
 
-  let file_path = "Tetris.gb"; // "gb-test-roms-master/cpu_instrs/individual/01-special.gb";
+  let file_path = "gb-test-roms-master/cpu_instrs/individual/10-bit ops.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
 
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
@@ -1157,8 +1158,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   //let cartridge_metadata_start = 0x100;
   //let cartridge_metadata_end = 0x14F;
-  let cartridge_title = str::from_utf8(&cpu.ram[0x134..0x143])?;
-  println!("Cartridge title: {}", cartridge_title);
+  //let cartridge_title = str::from_utf8(&cpu.ram[0x134..0x143])?;
+  //println!("Cartridge title: {}", cartridge_title);
 
 
 

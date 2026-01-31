@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -9,6 +10,17 @@ pub struct Instruction {
     pub operands: Vec<Operand>,
     pub immediate: bool,
     pub flags: Flags,
+}
+
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut operand_string = String::from("");
+        for operand in self.operands.iter() {
+            operand_string.push_str(&operand.name);
+            operand_string.push(' ');
+        }
+        write!(f, "{} {}", self.mnemonic, operand_string)
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
