@@ -418,6 +418,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
 
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
   let opcode = cpu.ram[cpu.pc as usize];
+  let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
   let mut cycles: u32 = 0;
   cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
   match opcode  {
@@ -484,6 +485,9 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x20 => {
       if !FlagsRegister::from(cpu.registers.f).zero {
         cpu.pc = cpu.pc.wrapping_add(cpu.read_i8_at_pc() as u16);
+        cycles = *instruction.cycles.first().unwrap();
+      } else {
+        cycles = *instruction.cycles.get(1).unwrap();
       }
       cpu.pc = cpu.pc.wrapping_add(1);
     }
@@ -1089,7 +1093,6 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
   }
   // if cycles haven't been set already set them now - this will handle the simple case of ops that take a set number of T-states
   if cycles == 0 {
-    let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
     cycles = *instruction.cycles.first().unwrap();
   }
   cycles
