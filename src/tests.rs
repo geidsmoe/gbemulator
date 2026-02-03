@@ -235,7 +235,7 @@ mod tests {
     opcode_test!(test_0d_dec_c, "0d");
     opcode_test!(test_0f_rrca, "0f");
     // 0x10 - 0x1F
-    opcode_test!(test_10_stop, "10", ignore);
+    opcode_test!(test_10_stop, "10");
     opcode_test!(test_13_inc_de, "13");
     opcode_test!(test_14_inc_d, "14");
     opcode_test!(test_15_dec_d, "15");
@@ -358,7 +358,7 @@ mod tests {
     opcode_test!(test_d5_push_de, "d5");
     opcode_test!(test_d6_sub_d8, "d6");
     opcode_test!(test_d7_rst_10h, "d7");
-    opcode_test!(test_d9_reti, "d9", ignore);
+    opcode_test!(test_d9_reti, "d9");
     opcode_test!(test_de_sbc_a_d8, "de");
     opcode_test!(test_df_rst_18h, "df");
 
@@ -378,14 +378,14 @@ mod tests {
     opcode_test!(test_f0_ldh_a_a8, "f0");
     opcode_test!(test_f1_pop_af, "f1");
     opcode_test!(test_f2_ld_a_c, "f2");
-    opcode_test!(test_f3_di, "f3", ignore);
+    opcode_test!(test_f3_di, "f3");
     opcode_test!(test_f5_push_af, "f5");
     opcode_test!(test_f6_or_d8, "f6");
     opcode_test!(test_f7_rst_30h, "f7");
     opcode_test!(test_f8_ld_hl_sp_r8, "f8");
     opcode_test!(test_f9_ld_sp_hl, "f9");
     opcode_test!(test_fa_ld_a_a16, "fa");
-    opcode_test!(test_fb_ei, "fb", ignore);
+    opcode_test!(test_fb_ei, "fb");
     opcode_test!(test_fe_cp_d8, "fe");
     opcode_test!(test_ff_rst_38h, "ff");
 

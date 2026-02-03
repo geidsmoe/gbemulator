@@ -37,15 +37,17 @@ pub struct CPU {
   pub ram: [u8; 0x10000],
   pub ime: u8,
   pub ie: u8,
+  pub div_cycles: u32,
+  pub timer_cycles: u32,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0 }
+        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, timer_cycles: 0 }
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0 };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, timer_cycles: 0 };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -310,5 +312,40 @@ impl CPU {
 
       pub fn set_bit(&self, value: u8, n: u8) -> u8 {
         value | (1 << n)
+      }
+
+      pub fn call(&mut self) {
+        let next_address = self.read_u16_at_pc();
+        // push current PC onto the stack
+        self.push(self.pc + 2);
+        // set the PC to be A16
+        self.pc = next_address;
+      }
+
+      pub fn handle_interrupts(&mut self) -> u32 {
+        // Interrupt Master Enable && Interrupt enable bit flags (IE) & Interrupt request flags (IF)
+        let interrupt_flags_allowed = self.ram[0xFFFF] & self.ram[0xFF0F];
+        if self.ime == 1 && interrupt_flags_allowed > 0 {
+          self.push(self.pc);
+          self.ime = 0;
+          if interrupt_flags_allowed & 1 == 1 { // VBlank
+            self.ram[0xFF0F] = self.reset_bit(self.ram[0xFF0F], 0);
+            self.pc = 0x40;
+          } else if interrupt_flags_allowed & 2 == 2 { // LCD
+            self.ram[0xFF0F] = self.reset_bit(self.ram[0xFF0F], 1);
+            self.pc = 0x48;
+          } else if interrupt_flags_allowed & 4 == 4 { // Timer
+            self.ram[0xFF0F] = self.reset_bit(self.ram[0xFF0F], 2);
+            self.pc = 0x50;
+          } else if interrupt_flags_allowed & 8 == 8 { // Serial
+            self.ram[0xFF0F] = self.reset_bit(self.ram[0xFF0F], 3);
+            self.pc = 0x58;
+          } else if interrupt_flags_allowed & 16 == 16 { // Joypad
+            self.ram[0xFF0F] = self.reset_bit(self.ram[0xFF0F], 4);
+            self.pc = 0x60;
+          }
+          return 20;
+        }
+        return 0;
       }
 }
