@@ -322,6 +322,15 @@ impl CPU {
         self.pc = next_address;
       }
 
+      pub fn write(&mut self, address: usize, value: u8) {
+        match address {
+          0xFF04 => { self.ram[address] = 0; }
+          _ => { self.ram[address] = value; }
+        }
+
+        self.ram[address] = value;
+      }
+
       pub fn handle_interrupts(&mut self) -> u32 {
         // Interrupt Master Enable && Interrupt enable bit flags (IE) & Interrupt request flags (IF)
         let interrupt_flags_allowed = self.ram[0xFFFF] & self.ram[0xFF0F];
@@ -347,5 +356,9 @@ impl CPU {
           return 20;
         }
         return 0;
+      }
+
+      pub fn handle_timer(&mut self) {
+
       }
 }
