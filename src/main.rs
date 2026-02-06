@@ -1,3 +1,5 @@
+extern crate sdl3;
+
 mod registers;
 mod cpu;
 mod instructions;
@@ -9,8 +11,12 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
+use sdl3::event::Event;
+use sdl3::keyboard::Keycode;
+
 use crate::cpu::CPU;
 use crate::instructions::{InstructionSet, execute_opcode};
+use crate::ppu::{PPU, WIDTH, HEIGHT};
 
 pub fn gameboy_doctor_cpu_log(cpu: &CPU) {
   //prints A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
@@ -24,6 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let instruction_set: InstructionSet = serde_json::from_reader(reader)?; 
 
   let mut cpu = CPU::gb_doctor_cpu();
+  let mut ppu = PPU::new();
 
   let file_path = "gb-test-roms-master/cpu_instrs/individual/02-interrupts.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
@@ -55,9 +62,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   //let cartridge_title = str::from_utf8(&cpu.ram[0x134..0x143])?;
   //println!("Cartridge title: {}", cartridge_title);
 
-  gameboy_doctor_cpu_log(&cpu);
+  //gameboy_doctor_cpu_log(&cpu);
 
-  loop {
+  let sdl_context = sdl3::init().unwrap();
+  let video_subsystem = sdl_context.video().unwrap();
+
+  let window = video_subsystem.window("rust-sdl3 demo", WIDTH, HEIGHT)
+      .position_centered()
+      .build()
+      .unwrap();
+
+  let mut canvas = window.into_canvas();
+
+
+  'running: loop {
     let interrupt_cycles = cpu.handle_interrupts();
     cpu.update_timer(interrupt_cycles);
     if cpu.halted {
@@ -65,7 +83,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
       let cycles = execute_opcode(&instruction_set, &mut cpu);
       cpu.update_timer(cycles);
-      gameboy_doctor_cpu_log(&cpu);
+      //gameboy_doctor_cpu_log(&cpu);
+    }
+    ppu.render(&mut canvas, &sdl_context);
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    
+    /*i = (i + 1) % 255;
+    canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
+    canvas.clear();*/
+    for event in event_pump.poll_iter() {
+        match event {
+            Event::Quit {..} |
+            Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                break 'running
+            },
+            _ => {}
+        }
     }
   }
 
