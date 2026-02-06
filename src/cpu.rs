@@ -361,7 +361,6 @@ impl CPU {
           return 20;
         } else if self.halted && interrupt_flags_allowed > 0 {
           self.halted = false;
-          self.pc = self.pc.wrapping_add(1);
         }
         return 0;
       }
