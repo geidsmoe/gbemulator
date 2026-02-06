@@ -38,16 +38,17 @@ pub struct CPU {
   pub ime: u8,
   pub ie: u8,
   pub div_cycles: u32,
-  pub timer_cycles: u32,
+  pub tcycles: u32,
+  pub halted: bool,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, timer_cycles: 0 }
+        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false }
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, timer_cycles: 0 };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -324,7 +325,10 @@ impl CPU {
 
       pub fn write(&mut self, address: usize, value: u8) {
         match address {
-          0xFF04 => { self.ram[address] = 0; }
+          0xFF04 => { 
+            self.ram[address] = 0;
+            self.div_cycles = 0; 
+          }
           _ => { self.ram[address] = value; }
         }
 
@@ -353,12 +357,44 @@ impl CPU {
             self.ram[0xFF0F] = self.reset_bit(self.ram[0xFF0F], 4);
             self.pc = 0x60;
           }
+          self.halted = false;
           return 20;
+        } else if self.halted && interrupt_flags_allowed > 0 {
+          self.halted = false;
+          self.pc = self.pc.wrapping_add(1);
         }
         return 0;
       }
 
-      pub fn handle_timer(&mut self) {
+      pub fn update_timer(&mut self, new_tcycles: u32) {
+        let tima_inc_enable_bit = ((self.ram[0xFF07] >> 2) & 1) == 1;
+        let tac_clock_select = self.ram[0xFF07] & 3;
+        let tma = self.ram[0xFF06];
+        let tima = self.ram[0xFF05];
+        let mut tima_mcycle_increment = 256;
+        if tac_clock_select == 1 {
+          tima_mcycle_increment = 4;
+        } else if tac_clock_select == 2 {
+          tima_mcycle_increment = 16;
+        } else if tac_clock_select == 3 {
+          tima_mcycle_increment = 64;
+        }
+        let tima_tycle_increment = tima_mcycle_increment * 4;
+        // if TIMA inc is enabled AND the increment amount will cause another `tima_tycle_increment` to complete
+        if tima_inc_enable_bit && (self.tcycles % tima_tycle_increment) + new_tcycles >= tima_tycle_increment  {
+          if tima == 0xFF {
+            self.write(0xFF05, tma);
+            // Set timer interrupt flag (bit 2 of IF)
+            self.ram[0xFF0F] |= 0x04;
+          } else {
+            self.write(0xFF05, tima + 1);
+          }
+        }
+        self.tcycles = self.tcycles.wrapping_add(new_tcycles);
 
+        if (self.div_cycles % 256) + new_tcycles >= 256 {
+          self.ram[0xFF04] = self.ram[0xFF04].wrapping_add(1);
+        }
+        self.div_cycles = self.div_cycles.wrapping_add(new_tcycles);
       }
 }

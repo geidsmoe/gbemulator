@@ -59,7 +59,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   loop {
     let interrupt_cycles = cpu.handle_interrupts();
-    let cycles = execute_opcode(&instruction_set, &mut cpu);
+    cpu.update_timer(interrupt_cycles);
+    if cpu.halted { 
+      cpu.update_timer(4);
+    } else { 
+      let cycles = execute_opcode(&instruction_set, &mut cpu);
+      cpu.update_timer(cycles); 
+    }
     gameboy_doctor_cpu_log(&cpu);
   }
 

@@ -470,8 +470,11 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
   cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
   match opcode  {
     0x00 => { /* NO OP */ }
-    0x10 => { /* TODO IMPLEMENT STOP */}
-    0xF3 => { /* TODO IMPLEMENT DI (Reset the interrupt master enable (IME) flag and prohibit maskable interrupts.) */
+    0x10 => {
+      cpu.div_cycles = 0;
+      cpu.ram[0xFF04] = 0;
+    }
+    0xF3 => {
       cpu.ime = 0;
     }
     0xFB => {
@@ -734,7 +737,9 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x73 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.e; }
     0x74 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.h; }
     0x75 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.l; }
-    0x76 => { /* HALT - TODO: implement properly */ }
+    0x76 => { /* HALT - TODO: implement properly */ 
+      cpu.halted = true;
+    }
     0x77 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.a; }
     /* LD A, r */
     0x78 => { cpu.registers.a = cpu.registers.b; }
