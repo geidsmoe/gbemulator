@@ -39,16 +39,17 @@ pub struct CPU {
   pub ie: u8,
   pub div_cycles: u32,
   pub tcycles: u32,
+  pub temp_cycles: u32,
   pub halted: bool,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false }
+        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0 }
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0 };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -395,5 +396,29 @@ impl CPU {
           self.ram[0xFF04] = self.ram[0xFF04].wrapping_add(1);
         }
         self.div_cycles = self.div_cycles.wrapping_add(new_tcycles);
+      }
+
+      pub fn set_ly(&mut self, value: u8) {
+        self.ram[0xFF44] = value;
+      }
+
+      pub fn request_vblank_interrupt(&mut self) {
+        self.ram[0xFF0F] |= 0x01;
+      }
+
+      pub fn request_lcd_interrupt(&mut self) {
+        self.ram[0xFF0F] |= 0x02;
+      }
+
+      pub fn request_timer_interrupt(&mut self) {
+        self.ram[0xFF0F] |= 0x04;
+      }
+
+      pub fn request_serial_interrupt(&mut self) {
+        self.ram[0xFF0F] |= 0x08;
+      }
+
+      pub fn request_joypad_interrupt(&mut self) {
+        self.ram[0xFF0F] |= 0x10;
       }
 }
