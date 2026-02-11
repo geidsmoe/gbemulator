@@ -17,8 +17,6 @@ pub const WIDTH: usize = 160;
 pub const HEIGHT: usize = 144;
 pub const MULTIPLIER: u32 = 5;
 
-pub const OBJECT_TILE_DATA_START: usize = 0x8000;
-
 pub struct PPU {
     pub display: [[u8; WIDTH]; HEIGHT],
     pub scanline: u16,
@@ -58,7 +56,7 @@ impl PPU {
     }
 
     pub fn copy_tile_to_screen_buffer(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], tile_num: u16, y_top: usize, x_left: usize) {
-        let tile_start_address = OBJECT_TILE_DATA_START + (16 * tile_num) as usize;
+        let tile_start_address = 0x8000 + (16 * tile_num) as usize;
         let tile = &cpu.ram[tile_start_address..tile_start_address+16];
         // let tile_xmod: usize = ((tile_num % 8) * 8) as usize;
         // let tile_ymod: usize = (tile_num.div(8) * 8) as usize;
@@ -77,20 +75,31 @@ impl PPU {
     }
 
     pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT]) {
-        let lcdc_bit3 = (cpu.get_lcdc() & 4) == 4;
         let mut background: [[u8; 256]; 256] = [[0; 256]; 256];
         let tilemap: &[u8];
-        if lcdc_bit3 { // BG uses tilemap $9800 
+
+        let lcdc_bit0_bg_enable = (cpu.get_lcdc() & 1) == 1;
+        let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 4) == 4;
+        let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 8) == 8;
+
+        if lcdc_bit3_tile_map_toggle { // BG uses tilemap $9800 
             tilemap = &cpu.ram[0x9800..0x9C00];
         } else { // BG uses tilemap 9C00
             tilemap = &cpu.ram[0x9C00..0x10000];
+        }
+
+        let object_tile_data_start: usize;
+        if lcdc_bit4_tile_data_area { // use [$8000-$8FFF]
+            object_tile_data_start = 0x8000;
+        } else { // use [[$8800-$97FF]]
+            object_tile_data_start = 0x8800;
         }
         // update BG
         for y in 0..32 {
             for x in 0..32 {
                 let background_offset = y*32 + x;
                 let tile_index = tilemap[background_offset];
-                let tile_start_address = OBJECT_TILE_DATA_START + (16 * tile_index) as usize;
+                let tile_start_address = object_tile_data_start + (16 * tile_index) as usize;
                 let tile = &cpu.ram[tile_start_address..tile_start_address+16];
                 for i in 0..8 {
                     let lsb = tile[2*i as usize];
@@ -106,15 +115,18 @@ impl PPU {
                 }
             }
         }
-        // copy BG to screen buffer accounting for current values of SCY and SCX
+        // IFF lcdc.0 == 1: copy BG to screen buffer accounting for current values of SCY and SCX
         let scy = cpu.get_scroll_y() as usize;
         let scx = cpu.get_scroll_x() as usize;
         let bottom = scy + 144;
         let right = scx + 160;
-        for y in scy..bottom {
-            for x in scx..right {
-                screen_buffer[y - scy][x - scx] = background[y % 256][x % 256];
+        if lcdc_bit0_bg_enable {
+            for y in scy..bottom {
+                for x in scx..right {
+                    screen_buffer[y - scy][x - scx] = background[y % 256][x % 256];
+                }
             }
         }
+        
     }
 }

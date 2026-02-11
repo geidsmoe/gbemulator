@@ -30,14 +30,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let reader = BufReader::new(file);
   let instruction_set: InstructionSet = serde_json::from_reader(reader)?; 
 
-  let mut cpu = CPU::gb_doctor_cpu();
+  let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
   let file_path = "Tetris.gb"; //"gb-test-roms-master/cpu_instrs/individual/02-interrupts.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
 
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
-  cpu.ram[0xFF44] = 0x90;
+  //cpu.ram[0xFF44] = 0x90; // only for gameboy doctor
 
   /*
   Metadata fields
