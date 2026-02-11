@@ -471,8 +471,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
   match opcode  {
     0x00 => { /* NO OP */ }
     0x10 => {
-      cpu.div_cycles = 0;
-      cpu.ram[0xFF04] = 0;
+      cpu.write(0xFF04, 0);
     }
     0xF3 => {
       cpu.ime = 0;
@@ -594,19 +593,19 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     }
     /* End direct loads */
     0x02 => {
-      cpu.ram[cpu.registers.get_bc() as usize] = cpu.registers.a; 
+      cpu.write(cpu.registers.get_bc() as usize, cpu.registers.a);
     }
     0x12 => {
-      cpu.ram[cpu.registers.get_de() as usize] = cpu.registers.a;
+      cpu.write(cpu.registers.get_de() as usize, cpu.registers.a);
     }
     0x22 => {
       let hl_value = cpu.registers.get_hl();
-      cpu.ram[hl_value as usize] = cpu.registers.a;
+      cpu.write(hl_value as usize, cpu.registers.a);
       cpu.registers.set_hl(hl_value + 1);
     }
     0x32 => {
       let hl_value = cpu.registers.get_hl();
-      cpu.ram[hl_value as usize] = cpu.registers.a;
+      cpu.write(hl_value as usize, cpu.registers.a);
       cpu.registers.set_hl(hl_value - 1);
     }
     0x06 => {
@@ -622,13 +621,14 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x36 => {
-      cpu.ram[cpu.registers.get_hl() as usize] = cpu.ram[cpu.pc as usize];
+      let value = cpu.ram[cpu.pc as usize];
+      cpu.write(cpu.registers.get_hl() as usize, value);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x08 => {
       let addr = cpu.read_u16_at_pc();
-      cpu.ram[addr as usize] = (cpu.sp & 0xFF) as u8;
-      cpu.ram[(addr + 1) as usize] = (cpu.sp >> 8) as u8;
+      cpu.write(addr as usize, (cpu.sp & 0xFF) as u8);
+      cpu.write((addr + 1) as usize, (cpu.sp >> 8) as u8);
       cpu.pc = cpu.pc.wrapping_add(2);
     }
     0x09 => { cpu.add_hl_16bit(RegisterNames16::BC); }
@@ -731,16 +731,16 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x6E => { cpu.registers.l = cpu.ram[cpu.registers.get_hl() as usize]; }
     0x6F => { cpu.registers.l = cpu.registers.a; }
     /* LD (HL), r */
-    0x70 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.b; }
-    0x71 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.c; }
-    0x72 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.d; }
-    0x73 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.e; }
-    0x74 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.h; }
-    0x75 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.l; }
+    0x70 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.b); }
+    0x71 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.c); }
+    0x72 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.d); }
+    0x73 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.e); }
+    0x74 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.h); }
+    0x75 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.l); }
     0x76 => { /* HALT - TODO: implement properly */ 
       cpu.halted = true;
     }
-    0x77 => { cpu.ram[cpu.registers.get_hl() as usize] = cpu.registers.a; }
+    0x77 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.a); }
     /* LD A, r */
     0x78 => { cpu.registers.a = cpu.registers.b; }
     0x79 => { cpu.registers.a = cpu.registers.c; }
@@ -753,7 +753,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xE0 => {
       let addr_lsb = cpu.ram[cpu.pc as usize];
       let addr = 0xFF00 | (addr_lsb as u16);
-      cpu.ram[addr as usize] = cpu.registers.a;
+      cpu.write(addr as usize, cpu.registers.a);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0xF0 => {
@@ -764,7 +764,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     }
     0xE2 => {
       let addr = 0xFF00 | (cpu.registers.c as u16);
-      cpu.ram[addr as usize] = cpu.registers.a;
+      cpu.write(addr as usize, cpu.registers.a);
     }
     0xF2 => {
       let addr = 0xFF00 | (cpu.registers.c as u16);
@@ -772,7 +772,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     }
     0xEA => {
       let addr = cpu.read_u16_at_pc();
-      cpu.ram[addr as usize] = cpu.registers.a; 
+      cpu.write(addr as usize, cpu.registers.a);
       cpu.pc = cpu.pc.wrapping_add(2);
     }
     0xFA => {

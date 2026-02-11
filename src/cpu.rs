@@ -46,7 +46,14 @@ pub struct CPU {
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 }
+        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 };
+        // Post-boot IO register values (DMG)
+        cpu.ram[0xFF40] = 0x91; // LCDC
+        cpu.ram[0xFF41] = 0x85; // STAT
+        cpu.ram[0xFF47] = 0xFC; // BGP
+        cpu.ram[0xFF48] = 0xFF; // OBP0
+        cpu.ram[0xFF49] = 0xFF; // OBP1
+        cpu
     }
 
     pub fn gb_doctor_cpu() -> CPU {
@@ -340,8 +347,13 @@ impl CPU {
           0xFF44 => {
             self.set_ly(value);
           }
-          0x8000..=0x9FFF if self.ppu_mode == 3 => {
-            // VRAM is inaccessible during PPU mode 3; ignore write
+          0xFF46 => {
+            // OAM DMA: copy 160 bytes from (value << 8) into OAM (0xFE00-0xFE9F)
+            let src = (value as usize) << 8;
+            for i in 0..0xA0 {
+              self.ram[0xFE00 + i] = self.ram[src + i];
+            }
+            self.ram[address] = value;
           }
           _ => { self.ram[address] = value; }
         }

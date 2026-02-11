@@ -82,6 +82,7 @@ impl PPU {
 
         let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 8) == 8;
         let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 16) == 16;
+        let bgp = cpu.ram[0xFF47];
 
         let tilemap_base: usize = if lcdc_bit3_tile_map_toggle { 0x9C00 } else { 0x9800 };
 
@@ -109,9 +110,11 @@ impl PPU {
             let msb = cpu.ram[tile_start_address + 2 * pixel_row + 1];
             let color_lbit = (lsb >> (7 - pixel_col)) & 1;
             let color_mbit = (msb >> (7 - pixel_col)) & 1;
-            let color = color_mbit << 1 | color_lbit;
+            let color_id = color_mbit << 1 | color_lbit;
 
-            screen_buffer[scanline as usize][screen_x] = color;
+            // Remap through BGP palette register
+            let shade = (bgp >> (color_id * 2)) & 0x03;
+            screen_buffer[scanline as usize][screen_x] = shade;
         }
     }
 }
