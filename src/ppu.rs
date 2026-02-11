@@ -74,7 +74,7 @@ impl PPU {
         }
     }
 
-    pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT]) {
+    pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) {
         let mut background: [[u8; 256]; 256] = [[0; 256]; 256];
         let tilemap: &[u8];
 

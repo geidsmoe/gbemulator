@@ -41,15 +41,16 @@ pub struct CPU {
   pub tcycles: u32,
   pub temp_cycles: u32,
   pub halted: bool,
+  pub ppu_mode: u8,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0 }
+        return CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::new(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 }
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0 };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -328,12 +329,13 @@ impl CPU {
         match address {
           0xFF04 => { 
             self.ram[address] = 0;
-            self.div_cycles = 0; 
+            self.div_cycles = 0;
+          }
+          0xFF44 => {
+            self.set_ly(value);
           }
           _ => { self.ram[address] = value; }
         }
-
-        self.ram[address] = value;
       }
 
       pub fn handle_interrupts(&mut self) -> u32 {
@@ -400,6 +402,29 @@ impl CPU {
 
       pub fn set_ly(&mut self, value: u8) {
         self.ram[0xFF44] = value;
+        // if LY == LYC
+        if self.ram[0xFF44] == self.ram[0xFF45] {
+          let stat = self.get_stat() | (1 << 2);
+          self.write(0xFF41, stat);
+          if stat & (1 << 6) != 0 { // game wants LYC=LY interrupt?
+              self.request_lcd_interrupt();
+          }
+        }
+      }
+
+      pub fn get_ly(&mut self) -> u8 {
+        self.ram[0xFF44]
+      }
+
+      pub fn set_stat_ppu_mode(&mut self, mode: u8) {
+        self.ppu_mode = mode;
+        let stat = self.get_stat() & !3;
+        let new_value = stat | (mode & 0x03);
+        self.write(0xFF41, new_value);
+      }
+
+      pub fn get_stat(&mut self) -> u8 {
+        self.ram[0xFF41]
       }
 
       pub fn request_vblank_interrupt(&mut self) {

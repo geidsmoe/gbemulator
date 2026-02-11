@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "Tetris.gb"; //"gb-test-roms-master/cpu_instrs/individual/02-interrupts.gb";
+  let file_path = "Tetris.gb"; //"gb-test-roms-master/cpu_instrs/cpu_instrs.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
 
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
@@ -89,6 +89,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       cpu.set_ly(scanline);
       
       while cpu.temp_cycles < 456 {
+        let scroll_x = cpu.get_scroll_x() as usize;
+        let mode3_drawing_length: u32 = (HEIGHT as u32) + 12 + (scroll_x as u32 % 8);
+        let hblank_length = 376 - mode3_drawing_length;
+        if cpu.temp_cycles < 80 && cpu.ppu_mode != 2 { // OAM
+          cpu.set_stat_ppu_mode(2);
+          if cpu.get_stat() & (1 << 5) != 0 { // game wants OAM interrupt?
+              cpu.request_lcd_interrupt();
+          }
+        } else if cpu.temp_cycles < mode3_drawing_length + 80 && cpu.ppu_mode != 3 { // Drawing
+          cpu.set_stat_ppu_mode(3);
+        } else if cpu.temp_cycles < 80 + mode3_drawing_length + hblank_length && cpu.ppu_mode != 0 { // Hblank
+          cpu.set_stat_ppu_mode(0);
+          if cpu.get_stat() & (1 << 3) != 0 { // game wants HBlank interrupt?
+              cpu.request_lcd_interrupt();
+          }
+        }
+
         let interrupt_cycles = cpu.handle_interrupts();
         cpu.update_timer(interrupt_cycles);
         if cpu.halted {
@@ -103,9 +120,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       }
       cpu.temp_cycles -= 456;
       if (scanline as usize) < HEIGHT {
-        ppu.update(&mut cpu, &mut screen_buffer);
+        ppu.update(&mut cpu, &mut screen_buffer, scanline);
       } else if (scanline as usize) == HEIGHT {
         cpu.request_vblank_interrupt();
+        cpu.set_stat_ppu_mode(1); // set STAT to VBlank
       }
     }
     
