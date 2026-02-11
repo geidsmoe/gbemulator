@@ -79,27 +79,30 @@ impl PPU {
         let tilemap: &[u8];
 
         let lcdc_bit0_bg_enable = (cpu.get_lcdc() & 1) == 1;
-        let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 4) == 4;
-        let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 8) == 8;
+        let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 8) == 8;
+        let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 16) == 16;
 
-        if lcdc_bit3_tile_map_toggle { // BG uses tilemap $9800 
+        if lcdc_bit3_tile_map_toggle { // BG uses tilemap $9C00 
+            tilemap = &cpu.ram[0x9C00..0xA000];
+        } else { // BG uses tilemap 9800
             tilemap = &cpu.ram[0x9800..0x9C00];
-        } else { // BG uses tilemap 9C00
-            tilemap = &cpu.ram[0x9C00..0x10000];
         }
 
-        let object_tile_data_start: usize;
-        if lcdc_bit4_tile_data_area { // use [$8000-$8FFF]
-            object_tile_data_start = 0x8000;
-        } else { // use [[$8800-$97FF]]
-            object_tile_data_start = 0x8800;
-        }
         // update BG
         for y in 0..32 {
             for x in 0..32 {
                 let background_offset = y*32 + x;
-                let tile_index = tilemap[background_offset];
-                let tile_start_address = object_tile_data_start + (16 * tile_index) as usize;
+                let tile_start_address: usize;
+                if lcdc_bit4_tile_data_area { // use [$8000-$8FFF], unsigned indices 0-255
+                    let bg_tile_data_start: usize = 0x8000;
+                    let tile_index = tilemap[background_offset];
+                    tile_start_address = (bg_tile_data_start + (16 * tile_index as usize));
+                } else { // use [[$8800-$97FF]], signed indices [-128, 127]
+                    let bg_tile_data_start:i32 = 0x9000;
+                    let tile_index:i8 = tilemap[background_offset] as i8;
+                    tile_start_address = (bg_tile_data_start + (16 * tile_index as i32)) as usize;
+                }
+
                 let tile = &cpu.ram[tile_start_address..tile_start_address+16];
                 for i in 0..8 {
                     let lsb = tile[2*i as usize];
@@ -108,8 +111,8 @@ impl PPU {
                         let color_lbit = (lsb >> (7 - j)) & 1;
                         let color_mbit = (msb >> (7 - j)) & 1;
                         let color = color_mbit << 1 | color_lbit;
-                        let background_y = ((y / 8) * 8) as usize;
-                        let background_x = ((x % 8) * 8) as usize; 
+                        let background_y = (y * 8) as usize;
+                        let background_x = (x * 8) as usize; 
                         background[i + background_y][j + background_x] = color;
                     }
                 }
