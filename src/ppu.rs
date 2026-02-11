@@ -1,9 +1,7 @@
 extern crate sdl3;
 
 use sdl3::Sdl;
-use sdl3::pixels::Color;
-use sdl3::rect::Rect;
-use sdl3::render::Canvas;
+use sdl3::render::{Canvas, Texture};
 use sdl3::video::Window;
 use std::ops::Div;
 use std::time::Duration;
@@ -36,29 +34,26 @@ impl PPU {
         return PPU { display: [[0; WIDTH]; HEIGHT], scanline: 0, viewport_x: 0, viewport_y: 0 }
     }
 
-    pub fn render_sdl_window(&mut self, canvas: &mut Canvas<Window>, cpu: &mut CPU, screen_buffer: &[[u8; WIDTH]; HEIGHT]) {
-        canvas.clear();
-        // goes through scanline 0-144
-        for (y, row) in screen_buffer.iter().enumerate() {       
-            for (x, &pixel) in row.iter().enumerate() {
-                let rect = Rect::new(
-                    (x as u32 * MULTIPLIER) as i32,
-                    (y as u32 * MULTIPLIER) as i32,
-                    MULTIPLIER,
-                    MULTIPLIER,
-                );
-                let mut color = Color::RGB(0xFF, 0xFF, 0xFF);
-                //let blah = if scanline % 2 == 0 { 1 } else { 3 };
-                match pixel {
-                    1 => { color = Color::RGB(0xAA, 0xAA, 0xAA) }
-                    2 => { color = Color::RGB(0x44, 0x44, 0x44) }
-                    3 => { color = Color::RGB(0, 0, 0) }
-                    _ => { /* 0 is already set by default above, all other values should never happen */ }
+    pub fn render_sdl_window(&mut self, canvas: &mut Canvas<Window>, texture: &mut Texture, screen_buffer: &[[u8; WIDTH]; HEIGHT]) {
+        //canvas.clear();
+        let palette: [[u8; 3]; 4] = [
+            [0xFF, 0xFF, 0xFF],
+            [0xAA, 0xAA, 0xAA],
+            [0x44, 0x44, 0x44],
+            [0x00, 0x00, 0x00],
+        ];
+        texture.with_lock(None, |buffer: &mut [u8], pitch: usize| {
+            for (y, row) in screen_buffer.iter().enumerate() {
+                for (x, &pixel) in row.iter().enumerate() {
+                    let idx = y * pitch + x * 3;
+                    let color = &palette[(pixel & 3) as usize];
+                    buffer[idx] = color[0];
+                    buffer[idx + 1] = color[1];
+                    buffer[idx + 2] = color[2];
                 }
-                canvas.set_draw_color(color);
-                canvas.fill_rect(rect).unwrap();
             }
-        }
+        }).unwrap();
+        canvas.copy(texture, None, None).unwrap();
         canvas.present();
     }
 
@@ -75,7 +70,7 @@ impl PPU {
                 let color_lbit = (lsb >> (7 - j)) & 1;
                 let color_mbit = (msb >> (7 - j)) & 1;
                 let color = color_mbit << 1 | color_lbit;
-                screen_buffer[i + tile_xmod][j + tile_ymod] = color;
+                screen_buffer[i + tile_ymod][j + tile_xmod] = color;
             }
         }
     }

@@ -10,6 +10,7 @@ use std::fs;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
+use std::time::Duration;
 
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
@@ -75,6 +76,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       .unwrap();
 
   let mut canvas = window.into_canvas();
+  let mut event_pump = sdl_context.event_pump().unwrap();
+  let texture_creator = canvas.texture_creator();
+  let mut texture = texture_creator
+    .create_texture_streaming(sdl3::pixels::PixelFormat::RGB24, WIDTH as u32, HEIGHT as u32)
+    .unwrap();
+  texture.set_scale_mode(sdl3::render::ScaleMode::Nearest);
 
   'running: loop {
     
@@ -85,6 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let interrupt_cycles = cpu.handle_interrupts();
         cpu.update_timer(interrupt_cycles);
         if cpu.halted {
+          cpu.temp_cycles += 4;
           cpu.update_timer(4);
         } else {
           let cycles = execute_opcode(&instruction_set, &mut cpu);
@@ -102,8 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for i in 0..64 {
       ppu.copy_tile_to_screen_buffer(&mut cpu, &mut screen_buffer, i);
     }
-    ppu.render_sdl_window(&mut canvas, &mut cpu, &screen_buffer);
-    let mut event_pump = sdl_context.event_pump().unwrap();
+    ppu.render_sdl_window(&mut canvas, &mut texture, &screen_buffer);
     
     for event in event_pump.poll_iter() {
         match event {
@@ -114,6 +121,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             _ => {}
         }
     }
+    ::std::thread::sleep(Duration::from_millis(16)); // ~60fps - VSync in present() handles pacing
   }
 
   Ok(())
