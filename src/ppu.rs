@@ -21,7 +21,7 @@ pub struct PPU {
     pub display: [[u8; WIDTH]; HEIGHT],
     pub scanline: u16,
     pub viewport_x: u16,
-    pub viewport_y: u16
+    pub viewport_y: u16,
 }
 
 /* Tile data is stored in VRAM in the memory area at $8000-$97FF; 
@@ -75,61 +75,43 @@ impl PPU {
     }
 
     pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) {
-        let mut background: [[u8; 256]; 256] = [[0; 256]; 256];
-        let tilemap: &[u8];
-
         let lcdc_bit0_bg_enable = (cpu.get_lcdc() & 1) == 1;
+        if !lcdc_bit0_bg_enable {
+            return;
+        }
+
         let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 8) == 8;
         let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 16) == 16;
 
-        if lcdc_bit3_tile_map_toggle { // BG uses tilemap $9C00 
-            tilemap = &cpu.ram[0x9C00..0xA000];
-        } else { // BG uses tilemap 9800
-            tilemap = &cpu.ram[0x9800..0x9C00];
-        }
+        let tilemap_base: usize = if lcdc_bit3_tile_map_toggle { 0x9C00 } else { 0x9800 };
 
-        // update BG
-        for y in 0..32 {
-            for x in 0..32 {
-                let background_offset = y*32 + x;
-                let tile_start_address: usize;
-                if lcdc_bit4_tile_data_area { // use [$8000-$8FFF], unsigned indices 0-255
-                    let bg_tile_data_start: usize = 0x8000;
-                    let tile_index = tilemap[background_offset];
-                    tile_start_address = (bg_tile_data_start + (16 * tile_index as usize));
-                } else { // use [[$8800-$97FF]], signed indices [-128, 127]
-                    let bg_tile_data_start:i32 = 0x9000;
-                    let tile_index:i8 = tilemap[background_offset] as i8;
-                    tile_start_address = (bg_tile_data_start + (16 * tile_index as i32)) as usize;
-                }
-
-                let tile = &cpu.ram[tile_start_address..tile_start_address+16];
-                for i in 0..8 {
-                    let lsb = tile[2*i as usize];
-                    let msb = tile[2*i+1 as usize];
-                    for j in 0..8 {
-                        let color_lbit = (lsb >> (7 - j)) & 1;
-                        let color_mbit = (msb >> (7 - j)) & 1;
-                        let color = color_mbit << 1 | color_lbit;
-                        let background_y = (y * 8) as usize;
-                        let background_x = (x * 8) as usize; 
-                        background[i + background_y][j + background_x] = color;
-                    }
-                }
-            }
-        }
-        // IFF lcdc.0 == 1: copy BG to screen buffer accounting for current values of SCY and SCX
         let scy = cpu.get_scroll_y() as usize;
         let scx = cpu.get_scroll_x() as usize;
-        let bottom = scy + 144;
-        let right = scx + 160;
-        if lcdc_bit0_bg_enable {
-            for y in scy..bottom {
-                for x in scx..right {
-                    screen_buffer[y - scy][x - scx] = background[y % 256][x % 256];
-                }
-            }
+
+        // The row in the 256x256 background that this scanline maps to
+        let bg_y = (scy + scanline as usize) % 256;
+        let tile_row = bg_y / 8;
+        let pixel_row = bg_y % 8;
+
+        for screen_x in 0..WIDTH {
+            let bg_x = (scx + screen_x) % 256;
+            let tile_col = bg_x / 8;
+            let pixel_col = bg_x % 8;
+
+            let tilemap_index = tile_row * 32 + tile_col;
+            let tile_start_address: usize = if lcdc_bit4_tile_data_area {
+                0x8000 + 16 * cpu.ram[tilemap_base + tilemap_index] as usize
+            } else {
+                (0x9000i32 + 16 * cpu.ram[tilemap_base + tilemap_index] as i8 as i32) as usize
+            };
+
+            let lsb = cpu.ram[tile_start_address + 2 * pixel_row];
+            let msb = cpu.ram[tile_start_address + 2 * pixel_row + 1];
+            let color_lbit = (lsb >> (7 - pixel_col)) & 1;
+            let color_mbit = (msb >> (7 - pixel_col)) & 1;
+            let color = color_mbit << 1 | color_lbit;
+
+            screen_buffer[scanline as usize][screen_x] = color;
         }
-        
     }
 }

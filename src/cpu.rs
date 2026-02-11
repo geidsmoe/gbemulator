@@ -331,8 +331,17 @@ impl CPU {
             self.ram[address] = 0;
             self.div_cycles = 0;
           }
+          0xFF43 => {
+            self.ram[address] = value;
+          }
+          0xFF42 => {
+            self.ram[address] = value;
+          }
           0xFF44 => {
             self.set_ly(value);
+          }
+          0x8000..=0x9FFF if self.ppu_mode == 3 => {
+            // VRAM is inaccessible during PPU mode 3; ignore write
           }
           _ => { self.ram[address] = value; }
         }

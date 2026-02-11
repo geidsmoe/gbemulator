@@ -84,7 +84,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   texture.set_scale_mode(sdl3::render::ScaleMode::Nearest);
 
   'running: loop {
-    
     for scanline in 0..154 {
       cpu.set_ly(scanline);
       
@@ -107,6 +106,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let interrupt_cycles = cpu.handle_interrupts();
+        cpu.temp_cycles += interrupt_cycles;
         cpu.update_timer(interrupt_cycles);
         if cpu.halted {
           cpu.temp_cycles += 4;
@@ -122,6 +122,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       if (scanline as usize) < HEIGHT {
         ppu.update(&mut cpu, &mut screen_buffer, scanline);
       } else if (scanline as usize) == HEIGHT {
+        //ppu.build_background(&mut cpu);
         cpu.request_vblank_interrupt();
         cpu.set_stat_ppu_mode(1); // set STAT to VBlank
       }
@@ -132,7 +133,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       let x = ((i % 8) * 8) as usize;
       ppu.copy_tile_to_screen_buffer(&mut cpu, &mut screen_buffer, i, y, x);
     }*/
-    ppu.render_sdl_window(&mut canvas, &mut texture, &screen_buffer);
+    ppu.render_sdl_window(&mut canvas, &mut texture, &mut screen_buffer);
     
     for event in event_pump.poll_iter() {
         match event {
