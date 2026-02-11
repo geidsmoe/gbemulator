@@ -102,14 +102,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
       }
       cpu.temp_cycles -= 456;
-      if scanline == 144 {
+      if (scanline as usize) < HEIGHT {
+        ppu.update(&mut cpu, &mut screen_buffer);
+      } else if (scanline as usize) == HEIGHT {
         cpu.request_vblank_interrupt();
       }
     }
     
-    for i in 0..64 {
-      ppu.copy_tile_to_screen_buffer(&mut cpu, &mut screen_buffer, i);
-    }
+    /*for i in 0..64 {
+      let y = ((i / 8) * 8) as usize;
+      let x = ((i % 8) * 8) as usize;
+      ppu.copy_tile_to_screen_buffer(&mut cpu, &mut screen_buffer, i, y, x);
+    }*/
     ppu.render_sdl_window(&mut canvas, &mut texture, &screen_buffer);
     
     for event in event_pump.poll_iter() {

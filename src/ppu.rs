@@ -57,11 +57,12 @@ impl PPU {
         canvas.present();
     }
 
-    pub fn copy_tile_to_screen_buffer(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], tile_num: u16) {
+    pub fn copy_tile_to_screen_buffer(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], tile_num: u16, y_top: usize, x_left: usize) {
         let tile_start_address = OBJECT_TILE_DATA_START + (16 * tile_num) as usize;
         let tile = &cpu.ram[tile_start_address..tile_start_address+16];
-        let tile_xmod: usize = ((tile_num % 8) * 8) as usize;
-        let tile_ymod: usize = (tile_num.div(8) * 8) as usize;
+        // let tile_xmod: usize = ((tile_num % 8) * 8) as usize;
+        // let tile_ymod: usize = (tile_num.div(8) * 8) as usize;
+
         for i in 0..8 {
             let lsb = tile[2*i as usize];
             let msb = tile[2*i+1 as usize];
@@ -70,7 +71,49 @@ impl PPU {
                 let color_lbit = (lsb >> (7 - j)) & 1;
                 let color_mbit = (msb >> (7 - j)) & 1;
                 let color = color_mbit << 1 | color_lbit;
-                screen_buffer[i + tile_ymod][j + tile_xmod] = color;
+                screen_buffer[i + y_top][j + x_left] = color;
+            }
+        }
+    }
+
+    pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT]) {
+        let lcdc_bit3 = (cpu.get_lcdc() & 4) == 4;
+        let mut background: [[u8; 256]; 256] = [[0; 256]; 256];
+        let tilemap: &[u8];
+        if lcdc_bit3 { // BG uses tilemap $9800 
+            tilemap = &cpu.ram[0x9800..0x9C00];
+        } else { // BG uses tilemap 9C00
+            tilemap = &cpu.ram[0x9C00..0x10000];
+        }
+        // update BG
+        for y in 0..32 {
+            for x in 0..32 {
+                let background_offset = y*32 + x;
+                let tile_index = tilemap[background_offset];
+                let tile_start_address = OBJECT_TILE_DATA_START + (16 * tile_index) as usize;
+                let tile = &cpu.ram[tile_start_address..tile_start_address+16];
+                for i in 0..8 {
+                    let lsb = tile[2*i as usize];
+                    let msb = tile[2*i+1 as usize];
+                    for j in 0..8 {
+                        let color_lbit = (lsb >> (7 - j)) & 1;
+                        let color_mbit = (msb >> (7 - j)) & 1;
+                        let color = color_mbit << 1 | color_lbit;
+                        let background_y = ((y / 8) * 8) as usize;
+                        let background_x = ((x % 8) * 8) as usize; 
+                        background[i + background_y][j + background_x] = color;
+                    }
+                }
+            }
+        }
+        // copy BG to screen buffer accounting for current values of SCY and SCX
+        let scy = cpu.get_scroll_y() as usize;
+        let scx = cpu.get_scroll_x() as usize;
+        let bottom = scy + 144;
+        let right = scx + 160;
+        for y in scy..bottom {
+            for x in scx..right {
+                screen_buffer[y - scy][x - scx] = background[y % 256][x % 256];
             }
         }
     }

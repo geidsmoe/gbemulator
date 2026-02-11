@@ -421,4 +421,16 @@ impl CPU {
       pub fn request_joypad_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x10;
       }
+
+      pub fn get_lcdc(&mut self) -> u8 {
+        self.ram[0xFF40]
+      }
+
+      pub fn get_scroll_y(&mut self) -> u8 {
+        self.ram[0xFF42]
+      }
+
+      pub fn get_scroll_x(&mut self) -> u8 {
+        self.ram[0xFF43]
+      }
 }
