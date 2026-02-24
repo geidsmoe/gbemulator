@@ -403,15 +403,16 @@ impl CPU {
         } else if tac_clock_select == 3 {
           tima_mcycle_increment = 64;
         }
-        let tima_tycle_increment = tima_mcycle_increment * 4;
+        let tima_tcycle_increment = tima_mcycle_increment * 4;
         // if TIMA inc is enabled AND the increment amount will cause another `tima_tycle_increment` to complete
-        if tima_inc_enable_bit && (self.tcycles % tima_tycle_increment) + new_tcycles >= tima_tycle_increment  {
+        if tima_inc_enable_bit && (self.tcycles % tima_tcycle_increment) + new_tcycles >= tima_tcycle_increment  {
           if tima == 0xFF {
             self.write(0xFF05, tma);
             // Set timer interrupt flag (bit 2 of IF)
             self.ram[0xFF0F] |= 0x04;
           } else {
-            self.write(0xFF05, tima + 1);
+            let increments: u8 = ((new_tcycles + (self.tcycles % tima_tcycle_increment)) / tima_tcycle_increment) as u8;
+            self.write(0xFF05, tima.wrapping_add(increments));
           }
         }
         self.tcycles = self.tcycles.wrapping_add(new_tcycles);
