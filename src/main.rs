@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "Tetris.gb"; //"gb-test-roms-master/cpu_instrs/cpu_instrs.gb";
+  let file_path = "gb-test-roms-master/instr_timing/instr_timing.gb"; //"mealybug-tearoom-tests/m3_scx_low_3_bits.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
 
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
@@ -120,9 +120,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       }
       cpu.temp_cycles -= 456;
       if (scanline as usize) < HEIGHT {
-        ppu.update(&mut cpu, &mut screen_buffer, scanline);
+        //ppu.update(&mut cpu, &mut screen_buffer, scanline);
+        ppu.build_background(&mut cpu);
+        ppu.update_whole_buffer(&mut cpu, &mut screen_buffer);
       } else if (scanline as usize) == HEIGHT {
-        //ppu.build_background(&mut cpu);
         cpu.request_vblank_interrupt();
         cpu.set_stat_ppu_mode(1); // set STAT to VBlank
       }

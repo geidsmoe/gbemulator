@@ -53,6 +53,7 @@ impl CPU {
         cpu.ram[0xFF47] = 0xFC; // BGP
         cpu.ram[0xFF48] = 0xFF; // OBP0
         cpu.ram[0xFF49] = 0xFF; // OBP1
+        //cpu.ram[0xFF00] = 
         cpu
     }
 
