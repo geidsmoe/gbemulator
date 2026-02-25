@@ -408,8 +408,9 @@ impl CPU {
         if tima_inc_enable_bit && (self.tcycles % tima_tcycle_increment) + new_tcycles >= tima_tcycle_increment  {
           if tima == 0xFF {
             self.write(0xFF05, tma);
-            // Set timer interrupt flag (bit 2 of IF)
-            self.ram[0xFF0F] |= 0x04;
+            // trying to emulate TIMA overflow delay - won't work quite right because during this "cycle" TIMA won't read as 0, it will read as TMA
+            self.tcycles = self.tcycles.wrapping_add(4);
+            self.request_timer_interrupt();
           } else {
             let increments: u8 = ((new_tcycles + (self.tcycles % tima_tcycle_increment)) / tima_tcycle_increment) as u8;
             self.write(0xFF05, tima.wrapping_add(increments));

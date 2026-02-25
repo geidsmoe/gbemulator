@@ -120,9 +120,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       }
       cpu.temp_cycles -= 456;
       if (scanline as usize) < HEIGHT {
-        //ppu.update(&mut cpu, &mut screen_buffer, scanline);
-        ppu.build_background(&mut cpu);
-        ppu.update_whole_buffer(&mut cpu, &mut screen_buffer);
+        ppu.update(&mut cpu, &mut screen_buffer, scanline);
+        //ppu.build_background(&mut cpu);
+        //ppu.update_whole_buffer(&mut cpu, &mut screen_buffer);
       } else if (scanline as usize) == HEIGHT {
         cpu.request_vblank_interrupt();
         cpu.set_stat_ppu_mode(1); // set STAT to VBlank
