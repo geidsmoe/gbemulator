@@ -33,10 +33,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "gb-test-roms-master/instr_timing/instr_timing.gb"; //"mealybug-tearoom-tests/m3_scx_low_3_bits.gb";
+  let file_path = "dr_mario.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_map_change.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
-
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
+
+  // let boot_rom_path = "dmg_boot.bin";
+  // let boot_rom_bytes: Vec<u8> = fs::read(Path::new(&boot_rom_path))?;
+  // cpu.ram[..256].copy_from_slice(&boot_rom_bytes);
+  // cpu.pc = 0;
   //cpu.ram[0xFF44] = 0x90; // only for gameboy doctor
 
   /*

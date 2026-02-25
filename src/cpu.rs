@@ -42,23 +42,66 @@ pub struct CPU {
   pub temp_cycles: u32,
   pub halted: bool,
   pub ppu_mode: u8,
+  pub ly: u8,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 };
+        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, ly: 0 };
         // Post-boot IO register values (DMG)
+        cpu.ram[0xFF00] = 0xCF;
+        cpu.ram[0xFF01] = 0x00;
+        cpu.ram[0xFF02] = 0x7E;
+        cpu.ram[0xFF04] = 0xAB;
+        cpu.ram[0xFF05] = 0x00; // TIMA
+        cpu.ram[0xFF06] = 0x00; // TMA
+        cpu.ram[0xFF07] = 0xF8; // TAC
+        cpu.ram[0xFF0F] = 0xE1; // IF
+
+        cpu.ram[0xFF10] = 0x80; // NR10
+        cpu.ram[0xFF11] = 0xBF; // NR11
+        cpu.ram[0xFF12] = 0xF3; // NR12
+        cpu.ram[0xFF13] = 0xFF; // NR13
+        cpu.ram[0xFF14] = 0xBF; // NR14
+
+        cpu.ram[0xFF16] = 0x3F; // NR21
+        cpu.ram[0xFF17] = 0x00; // NR22
+        cpu.ram[0xFF18] = 0xFF; // NR23
+        cpu.ram[0xFF19] = 0xBF; // NR24
+
+        cpu.ram[0xFF1A] = 0x7F; // NR30
+        cpu.ram[0xFF1B] = 0xFF; // NR31
+        cpu.ram[0xFF1C] = 0x9F; // NR32
+        cpu.ram[0xFF1D] = 0xFF; // NR33
+        cpu.ram[0xFF1E] = 0xBF; // NR34
+
+        cpu.ram[0xFF20] = 0xFF; // NR41
+        cpu.ram[0xFF21] = 0x00; // NR42
+        cpu.ram[0xFF22] = 0x00; // NR43
+        cpu.ram[0xFF23] = 0xBF; // NR44
+
+        cpu.ram[0xFF24] = 0x77; // NR50
+        cpu.ram[0xFF25] = 0xF3; // NR51
+        cpu.ram[0xFF26] = 0xF1; // NR52
+
         cpu.ram[0xFF40] = 0x91; // LCDC
         cpu.ram[0xFF41] = 0x85; // STAT
+        cpu.ram[0xFF42] = 0x00; // SCY
+        cpu.ram[0xFF43] = 0x00; // SCX
+        cpu.ram[0xFF44] = 0x00; // LY
+        cpu.ram[0xFF45] = 0x00; // LYC
+        cpu.ram[0xFF46] = 0xFF; // DMA
         cpu.ram[0xFF47] = 0xFC; // BGP
         cpu.ram[0xFF48] = 0xFF; // OBP0
         cpu.ram[0xFF49] = 0xFF; // OBP1
+        cpu.ram[0xFF4A] = 0x00; // WY
+        cpu.ram[0xFF4B] = 0x00; // WX
         //cpu.ram[0xFF00] = 
         cpu
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, ly: 0 };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -138,6 +181,9 @@ impl CPU {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let cy = if carry && flags_register.carry { 1 } else { 0 };
         let result = self.registers.a.wrapping_sub(value).wrapping_sub(cy);
+        if self.registers.a == 0x90 {
+          println!("LY == 144, Zero flag should be set now");
+        }
         flags_register.zero = result == 0;
         flags_register.subtract = true;
         flags_register.half_carry = half_borrow_sub_8bit(self.registers.a, value, cy);
@@ -426,6 +472,7 @@ impl CPU {
 
       pub fn set_ly(&mut self, value: u8) {
         self.ram[0xFF44] = value;
+        self.ly = value;
         // if LY == LYC
         if self.ram[0xFF44] == self.ram[0xFF45] {
           let stat = self.get_stat() | (1 << 2);
