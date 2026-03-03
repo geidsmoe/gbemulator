@@ -20,7 +20,12 @@ pub struct Instruction {
 pub fn gameboy_doctor_cpu_log(cpu: &CPU) {
   //prints A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
   println!("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X} JOYPAD:{:02X}",
-              cpu.registers.a, cpu.registers.f, cpu.registers.b, cpu.registers.c, cpu.registers.d, cpu.registers.e, cpu.registers.h, cpu.registers.l, cpu.sp, cpu.pc, cpu.ram[cpu.pc as usize], cpu.ram[cpu.pc.wrapping_add(1) as usize], cpu.ram[(cpu.pc.wrapping_add(2)) as usize], cpu.ram[(cpu.pc.wrapping_add(3)) as usize], cpu.ram[0xFF00]);
+              cpu.registers.a, cpu.registers.f, cpu.registers.b, cpu.registers.c, cpu.registers.d, cpu.registers.e, cpu.registers.h, cpu.registers.l, cpu.sp, cpu.pc,
+              cpu.read(cpu.pc as usize),
+              cpu.read(cpu.pc.wrapping_add(1) as usize),
+              cpu.read(cpu.pc.wrapping_add(2) as usize),
+              cpu.read(cpu.pc.wrapping_add(3) as usize),
+              cpu.read(0xFF00));
 }
 
 impl fmt::Display for Instruction {
@@ -70,7 +75,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x05 => { cpu.registers.l = cpu.rotate_left_with_carry(cpu.registers.l, true); }
     0x06 => {
       let addr = cpu.registers.get_hl() as usize;
-      let rlc_value = cpu.rotate_left_with_carry(cpu.ram[addr], true);
+      let rlc_value = cpu.rotate_left_with_carry(cpu.read(addr), true);
       cpu.write(addr, rlc_value);
     }
     0x07 => { cpu.registers.a = cpu.rotate_left_with_carry(cpu.registers.a, true); }
@@ -84,7 +89,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x0D => { cpu.registers.l = cpu.rotate_right_with_carry(cpu.registers.l, true); }
     0x0E => {
       let addr = cpu.registers.get_hl() as usize;
-      let rrc_value = cpu.rotate_right_with_carry(cpu.ram[addr], true);
+      let rrc_value = cpu.rotate_right_with_carry(cpu.read(addr), true);
       cpu.write(addr, rrc_value);
     }
     0x0F => { cpu.registers.a = cpu.rotate_right_with_carry(cpu.registers.a, true); }
@@ -98,7 +103,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x15 => { cpu.registers.l = cpu.rotate_left_through_carry(cpu.registers.l, true); }
     0x16 => {
       let addr = cpu.registers.get_hl() as usize;
-      let rl_value = cpu.rotate_left_through_carry(cpu.ram[addr], true);
+      let rl_value = cpu.rotate_left_through_carry(cpu.read(addr), true);
       cpu.write(addr, rl_value);
     }
     0x17 => { cpu.registers.a = cpu.rotate_left_through_carry(cpu.registers.a, true); }
@@ -112,7 +117,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x1D => { cpu.registers.l = cpu.rotate_right_through_carry(cpu.registers.l, true); }
     0x1E => {
       let addr = cpu.registers.get_hl() as usize;
-      let rr_value = cpu.rotate_right_through_carry(cpu.ram[addr], true);
+      let rr_value = cpu.rotate_right_through_carry(cpu.read(addr), true);
       cpu.write(addr, rr_value);
     }
     0x1F => { cpu.registers.a = cpu.rotate_right_through_carry(cpu.registers.a, true); }
@@ -126,7 +131,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x25 => { cpu.registers.l = cpu.shift_left_arithmetic(cpu.registers.l); }
     0x26 => {
       let addr = cpu.registers.get_hl() as usize;
-      let sla_value = cpu.shift_left_arithmetic(cpu.ram[addr]);
+      let sla_value = cpu.shift_left_arithmetic(cpu.read(addr));
       cpu.write(addr, sla_value);
     }
     0x27 => { cpu.registers.a = cpu.shift_left_arithmetic(cpu.registers.a); }
@@ -140,7 +145,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x2D => { cpu.registers.l = cpu.shift_right_arithmetic(cpu.registers.l); }
     0x2E => {
       let addr = cpu.registers.get_hl() as usize;
-      let sra_value = cpu.shift_right_arithmetic(cpu.ram[addr]);
+      let sra_value = cpu.shift_right_arithmetic(cpu.read(addr));
       cpu.write(addr, sra_value);
     }
     0x2F => { cpu.registers.a = cpu.shift_right_arithmetic(cpu.registers.a); }
@@ -154,7 +159,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x35 => { cpu.registers.l = cpu.swap_nibbles(cpu.registers.l); }
     0x36 => {
       let addr = cpu.registers.get_hl() as usize;
-      let nibble_swap_value = cpu.swap_nibbles(cpu.ram[addr]);
+      let nibble_swap_value = cpu.swap_nibbles(cpu.read(addr));
       cpu.write(addr, nibble_swap_value);
     }
     0x37 => { cpu.registers.a = cpu.swap_nibbles(cpu.registers.a); }
@@ -168,7 +173,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x3D => { cpu.registers.l = cpu.shift_right_logical(cpu.registers.l); }
     0x3E => {
       let addr = cpu.registers.get_hl() as usize;
-      let srl_value = cpu.shift_right_logical(cpu.ram[addr]);
+      let srl_value = cpu.shift_right_logical(cpu.read(addr));
       cpu.write(addr, srl_value);
     }
     0x3F => { cpu.registers.a = cpu.shift_right_logical(cpu.registers.a); }
@@ -180,7 +185,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x43 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 0); }
     0x44 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 0); }
     0x45 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 0); }
-    0x46 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 0); }
+    0x46 => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 0); }
     0x47 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 0); }
 
     // 0x48-0x4F: BIT 1,r
@@ -190,7 +195,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x4B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 1); }
     0x4C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 1); }
     0x4D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 1); }
-    0x4E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 1); }
+    0x4E => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 1); }
     0x4F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 1); }
 
     // 0x50-0x57: BIT 2,r
@@ -200,7 +205,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x53 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 2); }
     0x54 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 2); }
     0x55 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 2); }
-    0x56 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 2); }
+    0x56 => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 2); }
     0x57 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 2); }
 
     // 0x58-0x5F: BIT 3,r
@@ -210,7 +215,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x5B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 3); }
     0x5C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 3); }
     0x5D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 3); }
-    0x5E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 3); }
+    0x5E => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 3); }
     0x5F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 3); }
 
     // 0x60-0x67: BIT 4,r
@@ -220,7 +225,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x63 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 4); }
     0x64 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 4); }
     0x65 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 4); }
-    0x66 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 4); }
+    0x66 => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 4); }
     0x67 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 4); }
 
     // 0x68-0x6F: BIT 5,r
@@ -230,7 +235,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x6B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 5); }
     0x6C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 5); }
     0x6D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 5); }
-    0x6E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 5); }
+    0x6E => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 5); }
     0x6F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 5); }
 
     // 0x70-0x77: BIT 6,r
@@ -240,7 +245,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x73 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 6); }
     0x74 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 6); }
     0x75 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 6); }
-    0x76 => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 6); }
+    0x76 => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 6); }
     0x77 => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 6); }
 
     // 0x78-0x7F: BIT 7,r
@@ -250,7 +255,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x7B => { cpu.copy_bit_n_to_zero_flag(cpu.registers.e, 7); }
     0x7C => { cpu.copy_bit_n_to_zero_flag(cpu.registers.h, 7); }
     0x7D => { cpu.copy_bit_n_to_zero_flag(cpu.registers.l, 7); }
-    0x7E => { cpu.copy_bit_n_to_zero_flag(cpu.ram[cpu.registers.get_hl() as usize], 7); }
+    0x7E => { cpu.copy_bit_n_to_zero_flag(cpu.read(cpu.registers.get_hl() as usize), 7); }
     0x7F => { cpu.copy_bit_n_to_zero_flag(cpu.registers.a, 7); }
 
     // 0x80-0x87: RES 0,r
@@ -262,7 +267,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x85 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 0); }
     0x86 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 0));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 0));
     }
     0x87 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 0); }
 
@@ -275,7 +280,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x8D => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 1); }
     0x8E => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 1));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 1));
     }
     0x8F => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 1); }
 
@@ -288,7 +293,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x95 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 2); }
     0x96 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 2));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 2));
     }
     0x97 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 2); }
 
@@ -301,7 +306,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0x9D => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 3); }
     0x9E => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 3));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 3));
     }
     0x9F => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 3); }
 
@@ -314,7 +319,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xA5 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 4); }
     0xA6 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 4));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 4));
     }
     0xA7 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 4); }
 
@@ -327,7 +332,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xAD => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 5); }
     0xAE => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 5));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 5));
     }
     0xAF => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 5); }
 
@@ -340,7 +345,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xB5 => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 6); }
     0xB6 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 6));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 6));
     }
     0xB7 => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 6); }
 
@@ -353,7 +358,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xBD => { cpu.registers.l = cpu.reset_bit(cpu.registers.l, 7); }
     0xBE => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.reset_bit(cpu.ram[addr], 7));
+      cpu.write(addr, cpu.reset_bit(cpu.read(addr), 7));
     }
     0xBF => { cpu.registers.a = cpu.reset_bit(cpu.registers.a, 7); }
 
@@ -366,7 +371,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xC5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 0); }
     0xC6 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 0));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 0));
     }
     0xC7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 0); }
 
@@ -379,7 +384,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xCD => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 1); }
     0xCE => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 1));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 1));
     }
     0xCF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 1); }
 
@@ -392,7 +397,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xD5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 2); }
     0xD6 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 2));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 2));
     }
     0xD7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 2); }
 
@@ -405,7 +410,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xDD => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 3); }
     0xDE => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 3));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 3));
     }
     0xDF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 3); }
 
@@ -418,7 +423,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xE5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 4); }
     0xE6 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 4));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 4));
     }
     0xE7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 4); }
 
@@ -431,7 +436,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xED => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 5); }
     0xEE => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 5));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 5));
     }
     0xEF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 5); }
 
@@ -444,7 +449,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xF5 => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 6); }
     0xF6 => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 6));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 6));
     }
     0xF7 => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 6); }
 
@@ -457,7 +462,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
     0xFD => { cpu.registers.l = cpu.set_bit(cpu.registers.l, 7); }
     0xFE => {
       let addr = cpu.registers.get_hl() as usize;
-      cpu.write(addr, cpu.set_bit(cpu.ram[addr], 7));
+      cpu.write(addr, cpu.set_bit(cpu.read(addr), 7));
     }
     0xFF => { cpu.registers.a = cpu.set_bit(cpu.registers.a, 7); }
   }
@@ -470,7 +475,7 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
 }
 
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
-  let opcode = cpu.ram[cpu.pc as usize];
+  let opcode = cpu.read(cpu.pc as usize);
   let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
   println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
   gameboy_doctor_cpu_log(&cpu);
@@ -617,19 +622,19 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
       cpu.registers.set_hl(hl_value - 1);
     }
     0x06 => {
-      cpu.registers.b = cpu.ram[cpu.pc as usize];
+      cpu.registers.b = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x16 => {
-      cpu.registers.d = cpu.ram[cpu.pc as usize];
+      cpu.registers.d = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x26 => {
-      cpu.registers.h = cpu.ram[cpu.pc as usize];
+      cpu.registers.h = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x36 => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.write(cpu.registers.get_hl() as usize, value);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
@@ -656,32 +661,32 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     
-    0x0A => { cpu.registers.a = cpu.ram[cpu.registers.get_bc() as usize] }
-    0x1A => { cpu.registers.a = cpu.ram[cpu.registers.get_de() as usize] }
+    0x0A => { cpu.registers.a = cpu.read(cpu.registers.get_bc() as usize) }
+    0x1A => { cpu.registers.a = cpu.read(cpu.registers.get_de() as usize) }
     0x2A => { 
       let hl_value = cpu.registers.get_hl();
-      cpu.registers.a = cpu.ram[hl_value as usize];
+      cpu.registers.a = cpu.read(hl_value as usize);
       cpu.registers.set_hl(hl_value + 1);
     }
     0x3A => { 
       let hl_value = cpu.registers.get_hl();
-      cpu.registers.a = cpu.ram[hl_value as usize];
+      cpu.registers.a = cpu.read(hl_value as usize);
       cpu.registers.set_hl(hl_value - 1);
     }
     0x0E => { 
-      cpu.registers.c = cpu.ram[cpu.pc as usize];
+      cpu.registers.c = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x1E => { 
-      cpu.registers.e = cpu.ram[cpu.pc as usize];
+      cpu.registers.e = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x2E => { 
-      cpu.registers.l = cpu.ram[cpu.pc as usize];
+      cpu.registers.l = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0x3E => {
-      cpu.registers.a = cpu.ram[cpu.pc as usize];
+      cpu.registers.a = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     /* LD B, r */
@@ -691,7 +696,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x43 => { cpu.registers.b = cpu.registers.e; }
     0x44 => { cpu.registers.b = cpu.registers.h; }
     0x45 => { cpu.registers.b = cpu.registers.l; }
-    0x46 => { cpu.registers.b = cpu.ram[cpu.registers.get_hl() as usize]; }
+    0x46 => { cpu.registers.b = cpu.read(cpu.registers.get_hl() as usize); }
     0x47 => { cpu.registers.b = cpu.registers.a; }
     /* LD C, r */
     0x48 => { cpu.registers.c = cpu.registers.b; }
@@ -700,7 +705,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x4B => { cpu.registers.c = cpu.registers.e; }
     0x4C => { cpu.registers.c = cpu.registers.h; }
     0x4D => { cpu.registers.c = cpu.registers.l; }
-    0x4E => { cpu.registers.c = cpu.ram[cpu.registers.get_hl() as usize]; }
+    0x4E => { cpu.registers.c = cpu.read(cpu.registers.get_hl() as usize); }
     0x4F => { cpu.registers.c = cpu.registers.a; }
     /* LD D, r */
     0x50 => { cpu.registers.d = cpu.registers.b; }
@@ -709,7 +714,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x53 => { cpu.registers.d = cpu.registers.e; }
     0x54 => { cpu.registers.d = cpu.registers.h; }
     0x55 => { cpu.registers.d = cpu.registers.l; }
-    0x56 => { cpu.registers.d = cpu.ram[cpu.registers.get_hl() as usize]; }
+    0x56 => { cpu.registers.d = cpu.read(cpu.registers.get_hl() as usize); }
     0x57 => { cpu.registers.d = cpu.registers.a; }
     /* LD E, r */
     0x58 => { cpu.registers.e = cpu.registers.b; }
@@ -718,7 +723,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x5B => { /* LD reg into itself is no op */ }
     0x5C => { cpu.registers.e = cpu.registers.h; }
     0x5D => { cpu.registers.e = cpu.registers.l; }
-    0x5E => { cpu.registers.e = cpu.ram[cpu.registers.get_hl() as usize]; }
+    0x5E => { cpu.registers.e = cpu.read(cpu.registers.get_hl() as usize); }
     0x5F => { cpu.registers.e = cpu.registers.a; }
     /* LD H, r */
     0x60 => { cpu.registers.h = cpu.registers.b; }
@@ -727,7 +732,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x63 => { cpu.registers.h = cpu.registers.e; }
     0x64 => { /* LD reg into itself is no op */ }
     0x65 => { cpu.registers.h = cpu.registers.l; }
-    0x66 => { cpu.registers.h = cpu.ram[cpu.registers.get_hl() as usize]; }
+    0x66 => { cpu.registers.h = cpu.read(cpu.registers.get_hl() as usize); }
     0x67 => { cpu.registers.h = cpu.registers.a; }
     /* LD L, r */
     0x68 => { cpu.registers.l = cpu.registers.b; }
@@ -736,7 +741,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x6B => { cpu.registers.l = cpu.registers.e; }
     0x6C => { cpu.registers.l = cpu.registers.h; }
     0x6D => { /* LD reg into itself is no op */ }
-    0x6E => { cpu.registers.l = cpu.ram[cpu.registers.get_hl() as usize]; }
+    0x6E => { cpu.registers.l = cpu.read(cpu.registers.get_hl() as usize); }
     0x6F => { cpu.registers.l = cpu.registers.a; }
     /* LD (HL), r */
     0x70 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.b); }
@@ -756,18 +761,18 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x7B => { cpu.registers.a = cpu.registers.e; }
     0x7C => { cpu.registers.a = cpu.registers.h; }
     0x7D => { cpu.registers.a = cpu.registers.l; }
-    0x7E => { cpu.registers.a = cpu.ram[cpu.registers.get_hl() as usize]; }
+    0x7E => { cpu.registers.a = cpu.read(cpu.registers.get_hl() as usize); }
     0x7F => { /* LD reg into itself is no op */ }
     0xE0 => {
-      let addr_lsb = cpu.ram[cpu.pc as usize];
+      let addr_lsb = cpu.read(cpu.pc as usize);
       let addr = 0xFF00 | (addr_lsb as u16);
       cpu.write(addr as usize, cpu.registers.a);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0xF0 => {
-      let addr_lsb = cpu.ram[cpu.pc as usize];
+      let addr_lsb = cpu.read(cpu.pc as usize);
       let addr = 0xFF00 | (addr_lsb as u16);
-      cpu.registers.a = cpu.ram[addr as usize];
+      cpu.registers.a = cpu.read(addr as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
     }
     0xE2 => {
@@ -776,7 +781,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     }
     0xF2 => {
       let addr = 0xFF00 | (cpu.registers.c as u16);
-      cpu.registers.a = cpu.ram[addr as usize];
+      cpu.registers.a = cpu.read(addr as usize);
     }
     0xEA => {
       let addr = cpu.read_u16_at_pc();
@@ -785,7 +790,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     }
     0xFA => {
       let addr = cpu.read_u16_at_pc();
-      cpu.registers.a = cpu.ram[addr as usize];
+      cpu.registers.a = cpu.read(addr as usize);
       cpu.pc = cpu.pc.wrapping_add(2);
     }
     0xF8 => {
@@ -825,7 +830,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x2C => { cpu.registers.l = cpu.inc_8bit(cpu.registers.l); }
     0x34 => {
       let addr = cpu.registers.get_hl() as usize;
-      let inc_value = cpu.inc_8bit(cpu.ram[addr]);
+      let inc_value = cpu.inc_8bit(cpu.read(addr));
       cpu.write(addr, inc_value);
     }
     0x3C => { cpu.registers.a = cpu.inc_8bit(cpu.registers.a); }
@@ -839,7 +844,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x2D => { cpu.registers.l = cpu.dec_8bit(cpu.registers.l); }
     0x35 => {
       let addr = cpu.registers.get_hl() as usize;
-      let dec_value = cpu.dec_8bit(cpu.ram[addr]);
+      let dec_value = cpu.dec_8bit(cpu.read(addr));
       cpu.write(addr, dec_value);
     }
     0x3D => { cpu.registers.a = cpu.dec_8bit(cpu.registers.a); }
@@ -851,7 +856,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x83 => { cpu.add_8bit(cpu.registers.e); }
     0x84 => { cpu.add_8bit(cpu.registers.h); }
     0x85 => { cpu.add_8bit(cpu.registers.l); }
-    0x86 => { cpu.add_8bit(cpu.ram[cpu.registers.get_hl() as usize]); }
+    0x86 => { cpu.add_8bit(cpu.read(cpu.registers.get_hl() as usize)); }
     0x87 => { cpu.add_8bit(cpu.registers.a); }
     /* END 8BIT ADD */
     /* START 8BIT ADDC */
@@ -861,7 +866,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x8B => { cpu.addc_8bit(cpu.registers.e); }
     0x8C => { cpu.addc_8bit(cpu.registers.h); }
     0x8D => { cpu.addc_8bit(cpu.registers.l); }
-    0x8E => { cpu.addc_8bit(cpu.ram[cpu.registers.get_hl() as usize]); }
+    0x8E => { cpu.addc_8bit(cpu.read(cpu.registers.get_hl() as usize)); }
     0x8F => { cpu.addc_8bit(cpu.registers.a); }
     /* END 8BIT ADDC */
     /* START 8BIT SUB */
@@ -871,7 +876,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x93 => { cpu.registers.a = cpu.sub(cpu.registers.e, false) }
     0x94 => { cpu.registers.a = cpu.sub(cpu.registers.h, false) }
     0x95 => { cpu.registers.a = cpu.sub(cpu.registers.l, false) }
-    0x96 => { cpu.registers.a = cpu.sub(cpu.ram[cpu.registers.get_hl() as usize], false) }
+    0x96 => { cpu.registers.a = cpu.sub(cpu.read(cpu.registers.get_hl() as usize), false) }
     0x97 => { cpu.registers.a = cpu.sub(cpu.registers.a, false) }
     /* END 8BIT SUB */
     /* START 8BIT SBC */
@@ -881,7 +886,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0x9B => { cpu.registers.a = cpu.sub(cpu.registers.e, true) }
     0x9C => { cpu.registers.a = cpu.sub(cpu.registers.h, true) }
     0x9D => { cpu.registers.a = cpu.sub(cpu.registers.l, true) }
-    0x9E => { cpu.registers.a = cpu.sub(cpu.ram[cpu.registers.get_hl() as usize], true) }
+    0x9E => { cpu.registers.a = cpu.sub(cpu.read(cpu.registers.get_hl() as usize), true) }
     0x9F => { cpu.registers.a = cpu.sub(cpu.registers.a, true) }
     /* END 8BIT SBC */
     /* START 8BIT AND */
@@ -891,7 +896,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xA3 => { cpu.registers.a = cpu.and(cpu.registers.e) }
     0xA4 => { cpu.registers.a = cpu.and(cpu.registers.h) }
     0xA5 => { cpu.registers.a = cpu.and(cpu.registers.l) }
-    0xA6 => { cpu.registers.a = cpu.and(cpu.ram[cpu.registers.get_hl() as usize]) }
+    0xA6 => { cpu.registers.a = cpu.and(cpu.read(cpu.registers.get_hl() as usize)) }
     0xA7 => { cpu.registers.a = cpu.and(cpu.registers.a) }
     /* END 8BIT AND */
     /* START 8BIT XOR */
@@ -901,7 +906,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xAB => { cpu.registers.a = cpu.xor(cpu.registers.e) }
     0xAC => { cpu.registers.a = cpu.xor(cpu.registers.h) }
     0xAD => { cpu.registers.a = cpu.xor(cpu.registers.l) }
-    0xAE => { cpu.registers.a = cpu.xor(cpu.ram[cpu.registers.get_hl() as usize]) }
+    0xAE => { cpu.registers.a = cpu.xor(cpu.read(cpu.registers.get_hl() as usize)) }
     0xAF => { cpu.registers.a = cpu.xor(cpu.registers.a) }
     /* END 8BIT XOR */
     /* START 8BIT OR */
@@ -911,7 +916,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xB3 => { cpu.registers.a = cpu.or(cpu.registers.e) }
     0xB4 => { cpu.registers.a = cpu.or(cpu.registers.h) }
     0xB5 => { cpu.registers.a = cpu.or(cpu.registers.l) }
-    0xB6 => { cpu.registers.a = cpu.or(cpu.ram[cpu.registers.get_hl() as usize]) }
+    0xB6 => { cpu.registers.a = cpu.or(cpu.read(cpu.registers.get_hl() as usize)) }
     0xB7 => { cpu.registers.a = cpu.or(cpu.registers.a) }
     /* END 8BIT OR */
     /* START 8BIT CP */
@@ -921,47 +926,47 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xBB => { cpu.cp(cpu.registers.e) }
     0xBC => { cpu.cp(cpu.registers.h) }
     0xBD => { cpu.cp(cpu.registers.l) }
-    0xBE => { cpu.cp(cpu.ram[cpu.registers.get_hl() as usize]) }
+    0xBE => { cpu.cp(cpu.read(cpu.registers.get_hl() as usize)) }
     0xBF => { cpu.cp(cpu.registers.a) }
     /* END 8BIT CP */
     /* START 8BIT IMMEDIATE ALU */
     0xC6 => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.add_8bit(value);
     }
     0xCE => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.addc_8bit(value);
     }
     0xD6 => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.registers.a = cpu.sub(value, false);
     }
     0xDE => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.registers.a = cpu.sub(value, true);
     }
     0xE6 => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.registers.a = cpu.and(value);
     }
     0xEE => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.registers.a = cpu.xor(value);
     }
     0xF6 => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.registers.a = cpu.or(value);
     }
     0xFE => {
-      let value = cpu.ram[cpu.pc as usize];
+      let value = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       cpu.cp(value);
     }
@@ -1152,7 +1157,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
     0xF5 => { cpu.push(cpu.registers.get_af()) }
     /* END PUSH r16 */
     0xCB => {
-      let opcode = cpu.ram[cpu.pc as usize];
+      let opcode = cpu.read(cpu.pc as usize);
       cpu.pc = cpu.pc.wrapping_add(1);
       let instruction = &instruction_set.cbprefixed[&format!("{:#04X}", opcode)];
       

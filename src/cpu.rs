@@ -379,6 +379,10 @@ impl CPU {
         self.pc = next_address;
       }
 
+      pub fn read(&self, address: usize) -> u8 {
+        self.ram[address]
+      }
+
       pub fn write(&mut self, address: usize, value: u8) {
         match address {
           0xFF04 => { 
