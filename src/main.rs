@@ -144,9 +144,49 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match event {
             Event::Quit {..} |
             Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                break 'running
+              break 'running
             },
-            _ => {}
+            Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+              cpu.ram[0xFF00] = cpu.ram[0xFF00] | 0x08;
+              cpu.request_joypad_interrupt();
+            },
+            Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+              cpu.ram[0xFF00] = 0xD4;
+              cpu.request_joypad_interrupt();
+            },
+            Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+              cpu.ram[0xFF00] = 0xD2;
+              cpu.request_joypad_interrupt();
+            },
+            Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+              cpu.ram[0xFF00] = 0xD1;
+              cpu.request_joypad_interrupt();
+            },
+            // Start
+            Event::KeyDown { keycode: Some(Keycode::Return), .. } => {
+              cpu.ram[0xFF00] = 0xE8;
+              cpu.request_joypad_interrupt();
+            },
+            // Select
+            Event::KeyDown { keycode: Some(Keycode::RShift), .. } => {
+              cpu.ram[0xFF00] = 0xE4;
+              cpu.request_joypad_interrupt();
+            },
+            // B
+            Event::KeyDown { keycode: Some(Keycode::Z), .. } => {
+              cpu.ram[0xFF00] = 0xD2;
+              cpu.request_joypad_interrupt();
+            },
+            // A
+            Event::KeyDown { keycode: Some(Keycode::X), .. } => {
+              cpu.ram[0xFF00] = 0xD1;
+              cpu.request_joypad_interrupt();
+            },
+            _ => {
+              // joypad has no active buttons
+              cpu.ram[0xFF00] = 0xCF;
+              cpu.request_joypad_interrupt();
+            }
         }
     }
     ::std::thread::sleep(Duration::from_millis(16)); // ~60fps - VSync in present() handles pacing

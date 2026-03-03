@@ -381,9 +381,6 @@ impl CPU {
 
       pub fn write(&mut self, address: usize, value: u8) {
         match address {
-          0xFF00 => {
-            // don't write to the joypad byte
-          }
           0xFF04 => { 
             self.ram[address] = 0;
             self.div_cycles = 0;
