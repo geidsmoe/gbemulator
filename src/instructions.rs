@@ -61,10 +61,12 @@ pub struct InstructionSet {
     pub cbprefixed: HashMap<String, Instruction>
 }
 
-pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opcode: u8) -> u32 {
+pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opcode: u8, show_debug_messages: bool) -> u32 {
   let mut cycles: u32 = 0;
-  //println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
-  //gameboy_doctor_cpu_log(&cpu);
+  if show_debug_messages {
+    println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
+    gameboy_doctor_cpu_log(&cpu);
+  }
   match opcode {
     // 0x00-0x07: RLC r
     0x00 => { cpu.registers.b = cpu.rotate_left_with_carry(cpu.registers.b, true); }
@@ -474,11 +476,13 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
   cycles
 }
 
-pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
+pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU, show_debug_messages: bool) -> u32 {
   let opcode = cpu.read(cpu.pc as usize);
   let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
-  //println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
-  //gameboy_doctor_cpu_log(&cpu);
+  if show_debug_messages {
+    println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
+    gameboy_doctor_cpu_log(&cpu);
+  }
   let mut cycles: u32 = 0;
   cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
   match opcode  {
@@ -1161,7 +1165,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
       cpu.pc = cpu.pc.wrapping_add(1);
       let instruction = &instruction_set.cbprefixed[&format!("{:#04X}", opcode)];
       
-      cycles = execute_cb_prefixed_opcode(cpu, instruction, opcode);
+      cycles = execute_cb_prefixed_opcode(cpu, instruction, opcode, show_debug_messages);
     }
     _ => {
       panic!("{:#04X} {:#04X}: {} {:#?} Undefined opcode - this shouldn't have happened!\n", cpu.pc, opcode, instruction.mnemonic, instruction.operands);

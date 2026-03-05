@@ -6,6 +6,7 @@ mod instructions;
 pub mod tests;
 pub mod ppu;
 
+use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
@@ -14,7 +15,6 @@ use std::time::Duration;
 
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
-use sdl3::keyboard::KeyboardState;
 use sdl3::keyboard::Scancode;
 
 use crate::cpu::CPU;
@@ -28,6 +28,15 @@ pub fn gameboy_doctor_cpu_log(cpu: &CPU) {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+  let args: Vec<String> = env::args().collect();
+  let mut show_debug_messages = false;
+
+  if args.len() > 1 {
+    if args[1] == "-d" || args[1] == "d" {
+      show_debug_messages = true;
+    }
+  }
+  
   let file = File::open("opcodes.json")?;
   let reader = BufReader::new(file);
   let instruction_set: InstructionSet = serde_json::from_reader(reader)?; 
@@ -118,7 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           cpu.temp_cycles += 4;
           cpu.update_timer(4);
         } else {
-          let cycles = execute_opcode(&instruction_set, &mut cpu);
+          let cycles = execute_opcode(&instruction_set, &mut cpu, show_debug_messages);
           cpu.temp_cycles += cycles;
           cpu.update_timer(cycles);
           //gameboy_doctor_cpu_log(&cpu);
