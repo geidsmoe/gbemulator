@@ -14,6 +14,8 @@ use std::time::Duration;
 
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
+use sdl3::keyboard::KeyboardState;
+use sdl3::keyboard::Scancode;
 
 use crate::cpu::CPU;
 use crate::instructions::{InstructionSet, execute_opcode};
@@ -146,49 +148,57 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
               break 'running
             },
-            Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
-              cpu.ram[0xFF00] = cpu.ram[0xFF00] | 0x08;
-              cpu.request_joypad_interrupt();
-            },
-            Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
-              cpu.ram[0xFF00] = 0xD4;
-              cpu.request_joypad_interrupt();
-            },
-            Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
-              cpu.ram[0xFF00] = 0xD2;
-              cpu.request_joypad_interrupt();
-            },
-            Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
-              cpu.ram[0xFF00] = 0xD1;
-              cpu.request_joypad_interrupt();
-            },
-            // Start
-            Event::KeyDown { keycode: Some(Keycode::Return), .. } => {
-              cpu.ram[0xFF00] = 0xE8;
-              cpu.request_joypad_interrupt();
-            },
-            // Select
-            Event::KeyDown { keycode: Some(Keycode::RShift), .. } => {
-              cpu.ram[0xFF00] = 0xE4;
-              cpu.request_joypad_interrupt();
-            },
-            // B
-            Event::KeyDown { keycode: Some(Keycode::Z), .. } => {
-              cpu.ram[0xFF00] = 0xD2;
-              cpu.request_joypad_interrupt();
-            },
-            // A
-            Event::KeyDown { keycode: Some(Keycode::X), .. } => {
-              cpu.ram[0xFF00] = 0xD1;
-              cpu.request_joypad_interrupt();
-            },
-            _ => {
-              // joypad has no active buttons
-              cpu.ram[0xFF00] = 0xCF;
-              cpu.request_joypad_interrupt();
-            }
+            _ => {}
         }
     }
+
+    let keys = event_pump.keyboard_state();
+    let mut a_button_pressed = false;
+    if keys.is_scancode_pressed(Scancode::Down) {
+      cpu.ram[0xFF00] |= 0x08;
+      cpu.dpad |= 0x08;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Up) {
+      cpu.ram[0xFF00] |= 0x04;
+      cpu.dpad |= 0x04;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Left) {
+      cpu.ram[0xFF00] |= 0x02;
+      cpu.dpad |= 0x02;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Right) {
+      cpu.ram[0xFF00] |= 0x01;
+      cpu.dpad |= 0x01;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Return) {
+      cpu.ram[0xFF00] |= 0x08;
+      cpu.buttons |= 0x08;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::RShift) {
+      cpu.ram[0xFF00] |= 0x04;
+      cpu.buttons |= 0x04;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Z) {
+      cpu.ram[0xFF00] |= 0x02;
+      cpu.buttons |= 0x02;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::X) {
+      cpu.ram[0xFF00] |= 0x01;
+      cpu.buttons |= 0x01;
+      a_button_pressed = true;
+    }
+
+    if a_button_pressed {
+      cpu.request_joypad_interrupt();
+    }
+
     ::std::thread::sleep(Duration::from_millis(16)); // ~60fps - VSync in present() handles pacing
   }
 

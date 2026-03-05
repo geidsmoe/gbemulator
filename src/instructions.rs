@@ -63,8 +63,8 @@ pub struct InstructionSet {
 
 pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opcode: u8) -> u32 {
   let mut cycles: u32 = 0;
-  println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
-  gameboy_doctor_cpu_log(&cpu);
+  //println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
+  //gameboy_doctor_cpu_log(&cpu);
   match opcode {
     // 0x00-0x07: RLC r
     0x00 => { cpu.registers.b = cpu.rotate_left_with_carry(cpu.registers.b, true); }
@@ -477,8 +477,8 @@ pub fn execute_cb_prefixed_opcode(cpu: &mut CPU, instruction: &Instruction, opco
 pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU) -> u32 {
   let opcode = cpu.read(cpu.pc as usize);
   let instruction = &instruction_set.unprefixed[&format!("{:#04X}", opcode)];
-  println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
-  gameboy_doctor_cpu_log(&cpu);
+  //println!("{:#04X} {:#04X}: {}", cpu.pc, opcode, instruction);
+  //gameboy_doctor_cpu_log(&cpu);
   let mut cycles: u32 = 0;
   cpu.pc = cpu.pc.wrapping_add(1); // increment PC past the opcode
   match opcode  {

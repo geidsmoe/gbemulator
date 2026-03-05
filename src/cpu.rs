@@ -42,14 +42,17 @@ pub struct CPU {
   pub temp_cycles: u32,
   pub halted: bool,
   pub ppu_mode: u8,
-  pub ly: u8,
+  pub dpad: u8,
+  pub buttons: u8,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, ly: 0 };
+        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
         // Post-boot IO register values (DMG)
         cpu.ram[0xFF00] = 0xCF;
+        cpu.dpad = 0xCF;
+        cpu.buttons = 0xCF;
         cpu.ram[0xFF01] = 0x00;
         cpu.ram[0xFF02] = 0x7E;
         cpu.ram[0xFF04] = 0xAB;
@@ -96,12 +99,11 @@ impl CPU {
         cpu.ram[0xFF49] = 0xFF; // OBP1
         cpu.ram[0xFF4A] = 0x00; // WY
         cpu.ram[0xFF4B] = 0x00; // WX
-        //cpu.ram[0xFF00] = 
         cpu
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, ly: 0 };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -122,13 +124,13 @@ impl CPU {
     }
 
     pub fn read_u16_at(&self, addr: u16) -> u16 {
-        let lsb = self.ram[addr as usize];
-        let msb = self.ram[(addr + 1) as usize];
+        let lsb = self.read(addr as usize);
+        let msb = self.read((addr + 1) as usize);
         two_bytes_to_u16(lsb, msb)
     }
 
     pub fn read_i8_at(&self, addr: u16) -> i8 {
-      self.ram[addr as usize] as i8
+      self.read(addr as usize) as i8
     }
 
     pub fn read_i8_at_pc(&self) -> i8 {
@@ -181,9 +183,6 @@ impl CPU {
         let mut flags_register = FlagsRegister::from(self.registers.f);
         let cy = if carry && flags_register.carry { 1 } else { 0 };
         let result = self.registers.a.wrapping_sub(value).wrapping_sub(cy);
-        if self.registers.a == 0x90 {
-          println!("LY == 144, Zero flag should be set now");
-        }
         flags_register.zero = result == 0;
         flags_register.subtract = true;
         flags_register.half_carry = half_borrow_sub_8bit(self.registers.a, value, cy);
@@ -380,11 +379,37 @@ impl CPU {
       }
 
       pub fn read(&self, address: usize) -> u8 {
+        if address == 0xFF00 {
+          let joypad_flags = (self.ram[0xFF00] >> 4) & 0x3;
+          // neither dpad or buttons are selected
+          if joypad_flags == 0 || joypad_flags == 3 {
+            return self.ram[0xFF00] | 0x0F;
+            //self.ram[0xFF00] |= 0x0F;
+            //self.buttons |= 0x0F;
+            //self.dpad |= 0x0F;
+          }
+          else if joypad_flags == 1 {
+            return self.buttons
+          }
+          else if joypad_flags == 2 {
+            return self.dpad
+          }
+        }
+        
         self.ram[address]
       }
 
-      pub fn write(&mut self, address: usize, value: u8) {
+      pub fn write(&mut self, address: usize, mut value: u8) {
         match address {
+          0xFF00 => {
+            // neither buttons nor dpad selected, no buttons pressed
+            if value == 0x30 {
+              value |= 0xF;
+            }
+            self.ram[address] = value;
+            self.dpad = value;
+            self.buttons = value;
+          }
           0xFF04 => { 
             self.ram[address] = 0;
             self.div_cycles = 0;
@@ -476,7 +501,6 @@ impl CPU {
 
       pub fn set_ly(&mut self, value: u8) {
         self.ram[0xFF44] = value;
-        self.ly = value;
         // if LY == LYC
         if self.ram[0xFF44] == self.ram[0xFF45] {
           let stat = self.get_stat() | (1 << 2);
