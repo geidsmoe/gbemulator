@@ -139,15 +139,12 @@ impl PPU {
 
     pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) {
         let lcdc_bit0_bg_enable = (cpu.get_lcdc() & 1) == 1;
-        if !lcdc_bit0_bg_enable {
-            return;
-        }
 
         let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 8) == 8;
         let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 16) == 16;
         let bgp = cpu.ram[0xFF47];
 
-        let tilemap_base: usize = if lcdc_bit3_tile_map_toggle { 0x9C00 } else { 0x9800 };
+        let bg_tilemap_base: usize = if lcdc_bit3_tile_map_toggle { 0x9C00 } else { 0x9800 };
 
         let scy = cpu.get_scroll_y() as usize;
         let scx = cpu.get_scroll_x() as usize;
@@ -157,27 +154,37 @@ impl PPU {
         let tile_row = bg_y / 8;
         let pixel_row = bg_y % 8;
 
-        for screen_x in 0..WIDTH {
-            let bg_x = (scx + screen_x) % 256;
-            let tile_col = bg_x / 8;
-            let pixel_col = bg_x % 8;
 
-            let tilemap_index = tile_row * 32 + tile_col;
-            let tile_start_address: usize = if lcdc_bit4_tile_data_area {
-                0x8000 + 16 * cpu.ram[tilemap_base + tilemap_index] as usize
-            } else {
-                (0x9000i32 + 16 * cpu.ram[tilemap_base + tilemap_index] as i8 as i32) as usize
-            };
+        if lcdc_bit0_bg_enable {
+            // render background
+            for screen_x in 0..WIDTH {
+                let bg_x = (scx + screen_x) % 256;
+                let tile_col = bg_x / 8;
+                let pixel_col = bg_x % 8;
 
-            let lsb = cpu.ram[tile_start_address + 2 * pixel_row];
-            let msb = cpu.ram[tile_start_address + 2 * pixel_row + 1];
-            let color_lbit = (lsb >> (7 - pixel_col)) & 1;
-            let color_mbit = (msb >> (7 - pixel_col)) & 1;
-            let color_id = color_mbit << 1 | color_lbit;
+                let tilemap_index = tile_row * 32 + tile_col;
+                let tile_start_address: usize = if lcdc_bit4_tile_data_area {
+                    0x8000 + 16 * cpu.ram[bg_tilemap_base + tilemap_index] as usize
+                } else {
+                    (0x9000i32 + 16 * cpu.ram[bg_tilemap_base + tilemap_index] as i8 as i32) as usize
+                };
 
-            // Remap through BGP palette register
-            let shade = (bgp >> (color_id * 2)) & 0x03;
-            screen_buffer[scanline as usize][screen_x] = shade;
+                let lsb = cpu.ram[tile_start_address + 2 * pixel_row];
+                let msb = cpu.ram[tile_start_address + 2 * pixel_row + 1];
+                let color_lbit = (lsb >> (7 - pixel_col)) & 1;
+                let color_mbit = (msb >> (7 - pixel_col)) & 1;
+                let color_id = color_mbit << 1 | color_lbit;
+
+                // Remap through BGP palette register
+                let shade = (bgp >> (color_id * 2)) & 0x03;
+                screen_buffer[scanline as usize][screen_x] = shade;
+            }
+
+            // render window
+
         }
+        
+        
+
     }
 }

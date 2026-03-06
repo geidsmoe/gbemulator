@@ -19,13 +19,12 @@ pub struct Instruction {
 
 pub fn gameboy_doctor_cpu_log(cpu: &CPU) {
   //prints A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
-  println!("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X} JOYPAD:{:02X}",
+  println!("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
               cpu.registers.a, cpu.registers.f, cpu.registers.b, cpu.registers.c, cpu.registers.d, cpu.registers.e, cpu.registers.h, cpu.registers.l, cpu.sp, cpu.pc,
               cpu.read(cpu.pc as usize),
               cpu.read(cpu.pc.wrapping_add(1) as usize),
               cpu.read(cpu.pc.wrapping_add(2) as usize),
-              cpu.read(cpu.pc.wrapping_add(3) as usize),
-              cpu.read(0xFF00));
+              cpu.read(cpu.pc.wrapping_add(3) as usize));
 }
 
 impl fmt::Display for Instruction {
@@ -756,6 +755,7 @@ pub fn execute_opcode(instruction_set: &InstructionSet, cpu: &mut CPU, show_debu
     0x75 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.l); }
     0x76 => { /* HALT - TODO: implement properly */ 
       cpu.halted = true;
+
     }
     0x77 => { cpu.write(cpu.registers.get_hl() as usize, cpu.registers.a); }
     /* LD A, r */

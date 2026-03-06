@@ -37,6 +37,7 @@ pub struct CPU {
   pub ram: [u8; 0x10000],
   pub ime: u8,
   pub ie: u8,
+  pub interrupt_flag_request: u8,
   pub div_cycles: u32,
   pub tcycles: u32,
   pub temp_cycles: u32,
@@ -48,7 +49,7 @@ pub struct CPU {
 
 impl CPU {
     pub fn new() -> CPU {
-        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
+        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, interrupt_flag_request: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
         // Post-boot IO register values (DMG)
         cpu.ram[0xFF00] = 0xCF;
         cpu.dpad = 0xCF;
@@ -103,7 +104,7 @@ impl CPU {
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, interrupt_flag_request: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -406,6 +407,13 @@ impl CPU {
             if value == 0x30 {
               value |= 0xF;
             }
+            if value == 0x20 {
+              //value |= self.ram[address] & 0x0F;
+              value |= self.dpad & 0x0F;
+            }
+            if value == 0x10 {
+              value |= self.buttons & 0x0F;
+            }
             self.ram[address] = value;
             self.dpad = value;
             self.buttons = value;
@@ -429,6 +437,14 @@ impl CPU {
             for i in 0..0xA0 {
               self.ram[0xFE00 + i] = self.ram[src + i];
             }
+            self.ram[address] = value;
+          }
+          0xFF0F => {
+            self.interrupt_flag_request = value;
+            self.ram[address] = value;
+          }
+          0xFFFF => {
+            self.ie = value;
             self.ram[address] = value;
           }
           _ => { self.ram[address] = value; }
@@ -528,22 +544,27 @@ impl CPU {
 
       pub fn request_vblank_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x01;
+        self.interrupt_flag_request |= 0x01;
       }
 
       pub fn request_lcd_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x02;
+        self.interrupt_flag_request |= 0x02;
       }
 
       pub fn request_timer_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x04;
+        self.interrupt_flag_request |= 0x04;
       }
 
       pub fn request_serial_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x08;
+        self.interrupt_flag_request |= 0x08;
       }
 
       pub fn request_joypad_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x10;
+        self.interrupt_flag_request |= 0x10;
       }
 
       pub fn get_lcdc(&mut self) -> u8 {
