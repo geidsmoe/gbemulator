@@ -111,22 +111,22 @@ impl CPU {
 
     pub fn pop(&mut self) -> u16 {
         let lsb = self.ram[self.sp as usize];
-        let msb = self.ram[(self.sp + 1) as usize];
-        self.sp += 2;
+        let msb = self.ram[(self.sp.wrapping_add(1)) as usize];
+        self.sp = self.sp.wrapping_add(2);
         return two_bytes_to_u16(lsb, msb);
     }
 
     pub fn push(&mut self, next_address: u16) {
         let lsb: u8 =  (next_address & 0xFF) as u8;
         let msb: u8 = ((next_address & 0xFF00) >> 8) as u8;
-        self.ram[(self.sp - 1) as usize] = msb;
-        self.ram[(self.sp - 2) as usize] = lsb;
-        self.sp -= 2;
+        self.ram[(self.sp.wrapping_sub(1)) as usize] = msb;
+        self.ram[(self.sp.wrapping_sub(2)) as usize] = lsb;
+        self.sp = self.sp.wrapping_sub(2);
     }
 
     pub fn read_u16_at(&self, addr: u16) -> u16 {
         let lsb = self.read(addr as usize);
-        let msb = self.read((addr + 1) as usize);
+        let msb = self.read((addr.wrapping_add(1)) as usize);
         two_bytes_to_u16(lsb, msb)
     }
 
@@ -374,7 +374,7 @@ impl CPU {
       pub fn call(&mut self) {
         let next_address = self.read_u16_at_pc();
         // push current PC onto the stack
-        self.push(self.pc + 2);
+        self.push(self.pc.wrapping_add(2));
         // set the PC to be A16
         self.pc = next_address;
       }
@@ -437,7 +437,7 @@ impl CPU {
             // OAM DMA: copy 160 bytes from (value << 8) into OAM (0xFE00-0xFE9F)
             let src = (value as usize) << 8;
             for i in 0..0xA0 {
-              self.ram[0xFE00 + i] = self.ram[src + i];
+              self.ram[0xFE00_u16.wrapping_add(i) as usize] = self.ram[src.wrapping_add(i as usize)];
             }
             self.ram[address] = value;
           }
