@@ -95,7 +95,7 @@ mod tests {
 
         for test_case in test_cases {
             let mut cpu = setup_cpu(&test_case.initial);
-            execute_opcode(&instruction_set, &mut cpu);
+            execute_opcode(&instruction_set, &mut cpu, false);
             verify_cpu_state(&cpu, &test_case.final_state, &test_case.name);
         }
     }

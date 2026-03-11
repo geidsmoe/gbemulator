@@ -37,27 +37,74 @@ pub struct CPU {
   pub ram: [u8; 0x10000],
   pub ime: u8,
   pub ie: u8,
+  pub interrupt_flag_request: u8,
   pub div_cycles: u32,
   pub tcycles: u32,
   pub temp_cycles: u32,
   pub halted: bool,
   pub ppu_mode: u8,
+  pub dpad: u8,
+  pub buttons: u8,
 }
 
 impl CPU {
     pub fn new() -> CPU {
-        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 };
+        let mut cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, interrupt_flag_request: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
         // Post-boot IO register values (DMG)
+        cpu.ram[0xFF00] = 0xCF;
+        cpu.dpad = 0xCF;
+        cpu.buttons = 0xCF;
+        cpu.ram[0xFF01] = 0x00;
+        cpu.ram[0xFF02] = 0x7E;
+        cpu.ram[0xFF04] = 0xAB;
+        cpu.ram[0xFF05] = 0x00; // TIMA
+        cpu.ram[0xFF06] = 0x00; // TMA
+        cpu.ram[0xFF07] = 0xF8; // TAC
+        cpu.ram[0xFF0F] = 0xE1; // IF
+
+        cpu.ram[0xFF10] = 0x80; // NR10
+        cpu.ram[0xFF11] = 0xBF; // NR11
+        cpu.ram[0xFF12] = 0xF3; // NR12
+        cpu.ram[0xFF13] = 0xFF; // NR13
+        cpu.ram[0xFF14] = 0xBF; // NR14
+
+        cpu.ram[0xFF16] = 0x3F; // NR21
+        cpu.ram[0xFF17] = 0x00; // NR22
+        cpu.ram[0xFF18] = 0xFF; // NR23
+        cpu.ram[0xFF19] = 0xBF; // NR24
+
+        cpu.ram[0xFF1A] = 0x7F; // NR30
+        cpu.ram[0xFF1B] = 0xFF; // NR31
+        cpu.ram[0xFF1C] = 0x9F; // NR32
+        cpu.ram[0xFF1D] = 0xFF; // NR33
+        cpu.ram[0xFF1E] = 0xBF; // NR34
+
+        cpu.ram[0xFF20] = 0xFF; // NR41
+        cpu.ram[0xFF21] = 0x00; // NR42
+        cpu.ram[0xFF22] = 0x00; // NR43
+        cpu.ram[0xFF23] = 0xBF; // NR44
+
+        cpu.ram[0xFF24] = 0x77; // NR50
+        cpu.ram[0xFF25] = 0xF3; // NR51
+        cpu.ram[0xFF26] = 0xF1; // NR52
+
         cpu.ram[0xFF40] = 0x91; // LCDC
         cpu.ram[0xFF41] = 0x85; // STAT
+        cpu.ram[0xFF42] = 0x00; // SCY
+        cpu.ram[0xFF43] = 0x00; // SCX
+        cpu.ram[0xFF44] = 0x00; // LY
+        cpu.ram[0xFF45] = 0x00; // LYC
+        cpu.ram[0xFF46] = 0xFF; // DMA
         cpu.ram[0xFF47] = 0xFC; // BGP
         cpu.ram[0xFF48] = 0xFF; // OBP0
         cpu.ram[0xFF49] = 0xFF; // OBP1
+        cpu.ram[0xFF4A] = 0x00; // WY
+        cpu.ram[0xFF4B] = 0x00; // WX
         cpu
     }
 
     pub fn gb_doctor_cpu() -> CPU {
-      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2 };
+      let mut gb_doctor_cpu = CPU { pc: 0x0100, sp: 0xFFFE, registers: Registers8::gb_doctor_values(), ram: [0; 0x10000], ime: 0, ie: 0, interrupt_flag_request: 0, div_cycles: 0, tcycles: 0, halted: false, temp_cycles: 0, ppu_mode: 2, dpad: 0, buttons: 0 };
       gb_doctor_cpu.ram[0xFF44] = 0x90;
       gb_doctor_cpu
     }
@@ -78,13 +125,13 @@ impl CPU {
     }
 
     pub fn read_u16_at(&self, addr: u16) -> u16 {
-        let lsb = self.ram[addr as usize];
-        let msb = self.ram[(addr + 1) as usize];
+        let lsb = self.read(addr as usize);
+        let msb = self.read((addr + 1) as usize);
         two_bytes_to_u16(lsb, msb)
     }
 
     pub fn read_i8_at(&self, addr: u16) -> i8 {
-      self.ram[addr as usize] as i8
+      self.read(addr as usize) as i8
     }
 
     pub fn read_i8_at_pc(&self) -> i8 {
@@ -332,8 +379,47 @@ impl CPU {
         self.pc = next_address;
       }
 
-      pub fn write(&mut self, address: usize, value: u8) {
+      pub fn read(&self, address: usize) -> u8 {
+        if address == 0xFF00 {
+          let joypad_flags = (self.ram[0xFF00] >> 4) & 0x3;
+          // neither dpad or buttons are selected
+          if joypad_flags == 0 || joypad_flags == 3 {
+            return self.ram[0xFF00] | 0x0F;
+            //self.ram[0xFF00] |= 0x0F;
+            //self.buttons |= 0x0F;
+            //self.dpad |= 0x0F;
+          }
+          else if joypad_flags == 1 {
+            return self.buttons
+          }
+          else if joypad_flags == 2 {
+            return self.dpad
+          }
+        }
+        
+        self.ram[address]
+      }
+
+      pub fn write(&mut self, address: usize, mut value: u8) {
         match address {
+          0xFF00 => {
+            // neither buttons nor dpad selected, no buttons pressed
+            if value == 0x30 {
+              value |= 0xF;
+              self.ram[address] = value;
+              self.dpad = value;
+              self.buttons = value;
+            } else if value == 0x20 {
+              //value |= self.ram[address] & 0x0F;
+              value |= self.dpad & 0x0F;
+              self.dpad = value;
+            } else if value == 0x10 {
+              value |= self.buttons & 0x0F;
+              self.buttons = value;
+            }
+            self.ram[address] = value;
+            
+          }
           0xFF04 => { 
             self.ram[address] = 0;
             self.div_cycles = 0;
@@ -353,6 +439,14 @@ impl CPU {
             for i in 0..0xA0 {
               self.ram[0xFE00 + i] = self.ram[src + i];
             }
+            self.ram[address] = value;
+          }
+          0xFF0F => {
+            self.interrupt_flag_request = value;
+            self.ram[address] = value;
+          }
+          0xFFFF => {
+            self.ie = value;
             self.ram[address] = value;
           }
           _ => { self.ram[address] = value; }
@@ -402,15 +496,17 @@ impl CPU {
         } else if tac_clock_select == 3 {
           tima_mcycle_increment = 64;
         }
-        let tima_tycle_increment = tima_mcycle_increment * 4;
+        let tima_tcycle_increment = tima_mcycle_increment * 4;
         // if TIMA inc is enabled AND the increment amount will cause another `tima_tycle_increment` to complete
-        if tima_inc_enable_bit && (self.tcycles % tima_tycle_increment) + new_tcycles >= tima_tycle_increment  {
+        if tima_inc_enable_bit && (self.tcycles % tima_tcycle_increment) + new_tcycles >= tima_tcycle_increment  {
           if tima == 0xFF {
             self.write(0xFF05, tma);
-            // Set timer interrupt flag (bit 2 of IF)
-            self.ram[0xFF0F] |= 0x04;
+            // trying to emulate TIMA overflow delay - won't work quite right because during this "cycle" TIMA won't read as 0, it will read as TMA
+            self.tcycles = self.tcycles.wrapping_add(4);
+            self.request_timer_interrupt();
           } else {
-            self.write(0xFF05, tima + 1);
+            let increments: u8 = ((new_tcycles + (self.tcycles % tima_tcycle_increment)) / tima_tcycle_increment) as u8;
+            self.write(0xFF05, tima.wrapping_add(increments));
           }
         }
         self.tcycles = self.tcycles.wrapping_add(new_tcycles);
@@ -450,22 +546,27 @@ impl CPU {
 
       pub fn request_vblank_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x01;
+        self.interrupt_flag_request |= 0x01;
       }
 
       pub fn request_lcd_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x02;
+        self.interrupt_flag_request |= 0x02;
       }
 
       pub fn request_timer_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x04;
+        self.interrupt_flag_request |= 0x04;
       }
 
       pub fn request_serial_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x08;
+        self.interrupt_flag_request |= 0x08;
       }
 
       pub fn request_joypad_interrupt(&mut self) {
         self.ram[0xFF0F] |= 0x10;
+        self.interrupt_flag_request |= 0x10;
       }
 
       pub fn get_lcdc(&mut self) -> u8 {

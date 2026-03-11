@@ -6,6 +6,7 @@ mod instructions;
 pub mod tests;
 pub mod ppu;
 
+use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
@@ -14,6 +15,7 @@ use std::time::Duration;
 
 use sdl3::event::Event;
 use sdl3::keyboard::Keycode;
+use sdl3::keyboard::Scancode;
 
 use crate::cpu::CPU;
 use crate::instructions::{InstructionSet, execute_opcode};
@@ -22,10 +24,19 @@ use crate::ppu::{PPU, WIDTH, HEIGHT, MULTIPLIER};
 pub fn gameboy_doctor_cpu_log(cpu: &CPU) {
   //prints A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
   println!("A:{:02X} F:{:02X} B:{:02X} C:{:02X} D:{:02X} E:{:02X} H:{:02X} L:{:02X} SP:{:04X} PC:{:04X} PCMEM:{:02X},{:02X},{:02X},{:02X}",
-              cpu.registers.a, cpu.registers.f, cpu.registers.b, cpu.registers.c, cpu.registers.d, cpu.registers.e, cpu.registers.h, cpu.registers.l, cpu.sp, cpu.pc, cpu.ram[cpu.pc as usize], cpu.ram[(cpu.pc+1) as usize], cpu.ram[(cpu.pc+2) as usize], cpu.ram[(cpu.pc+3) as usize]);
+              cpu.registers.a, cpu.registers.f, cpu.registers.b, cpu.registers.c, cpu.registers.d, cpu.registers.e, cpu.registers.h, cpu.registers.l, cpu.sp, cpu.pc, cpu.ram[cpu.pc as usize], cpu.ram[cpu.pc.wrapping_add(1) as usize], cpu.ram[(cpu.pc.wrapping_add(2)) as usize], cpu.ram[(cpu.pc.wrapping_add(3)) as usize]);
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+  let args: Vec<String> = env::args().collect();
+  let mut show_debug_messages = false;
+
+  if args.len() > 1 {
+    if args[1] == "-d" || args[1] == "d" {
+      show_debug_messages = true;
+    }
+  }
+  
   let file = File::open("opcodes.json")?;
   let reader = BufReader::new(file);
   let instruction_set: InstructionSet = serde_json::from_reader(reader)?; 
@@ -33,10 +44,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "Tetris.gb"; //"gb-test-roms-master/cpu_instrs/cpu_instrs.gb";
+  let file_path = "Tetris.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_map_change.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
-
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
+
+  // let boot_rom_path = "dmg_boot.bin";
+  // let boot_rom_bytes: Vec<u8> = fs::read(Path::new(&boot_rom_path))?;
+  // cpu.ram[..256].copy_from_slice(&boot_rom_bytes);
+  // cpu.pc = 0;
   //cpu.ram[0xFF44] = 0x90; // only for gameboy doctor
 
   /*
@@ -70,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let mut screen_buffer: [[u8; WIDTH]; HEIGHT] = [[0; WIDTH]; HEIGHT];
 
-  let window = video_subsystem.window("rust-sdl3 demo", (WIDTH as u32) * MULTIPLIER, (HEIGHT as u32) * MULTIPLIER)
+  let window = video_subsystem.window("Half Baked Gameboy", (WIDTH as u32) * MULTIPLIER, (HEIGHT as u32) * MULTIPLIER)
       .position_centered()
       .build()
       .unwrap();
@@ -112,38 +127,79 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           cpu.temp_cycles += 4;
           cpu.update_timer(4);
         } else {
-          let cycles = execute_opcode(&instruction_set, &mut cpu);
+          let cycles = execute_opcode(&instruction_set, &mut cpu, show_debug_messages);
           cpu.temp_cycles += cycles;
           cpu.update_timer(cycles);
-          //gameboy_doctor_cpu_log(&cpu);
         }
       }
       cpu.temp_cycles -= 456;
       if (scanline as usize) < HEIGHT {
         ppu.update(&mut cpu, &mut screen_buffer, scanline);
       } else if (scanline as usize) == HEIGHT {
-        //ppu.build_background(&mut cpu);
         cpu.request_vblank_interrupt();
         cpu.set_stat_ppu_mode(1); // set STAT to VBlank
       }
     }
     
-    /*for i in 0..64 {
-      let y = ((i / 8) * 8) as usize;
-      let x = ((i % 8) * 8) as usize;
-      ppu.copy_tile_to_screen_buffer(&mut cpu, &mut screen_buffer, i, y, x);
-    }*/
     ppu.render_sdl_window(&mut canvas, &mut texture, &mut screen_buffer);
     
     for event in event_pump.poll_iter() {
         match event {
             Event::Quit {..} |
             Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                break 'running
+              break 'running
             },
             _ => {}
         }
     }
+
+    let keys = event_pump.keyboard_state();
+    let mut a_button_pressed = false;
+    if keys.is_scancode_pressed(Scancode::Down) {
+      //cpu.ram[0xFF00] &= 0b11110111;
+      cpu.dpad &= 0b11110111;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Up) {
+      //cpu.ram[0xFF00] &= 0b11111011;
+      cpu.dpad &= 0b11111011;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Left) {
+      //cpu.ram[0xFF00] &= 0b11111101;
+      cpu.dpad &= 0b11111101;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Right) {
+      //cpu.ram[0xFF00] &= 0b11111110;
+      cpu.dpad &= 0b11111110;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Return) {
+      //cpu.ram[0xFF00] &= 0b11110111;
+      cpu.buttons &= 0b11110111;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::RShift) {
+      //cpu.ram[0xFF00] &= 0b11111011;
+      cpu.buttons &= 0b11111011;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::Z) {
+      //cpu.ram[0xFF00] &= 0b11111101;
+      cpu.buttons &= 0b11111101;
+      a_button_pressed = true;
+    }
+    if keys.is_scancode_pressed(Scancode::X) {
+      //cpu.ram[0xFF00] &= 0b11111110;
+      cpu.buttons &= 0b11111110;
+      a_button_pressed = true;
+    }
+
+    if a_button_pressed {
+      cpu.request_joypad_interrupt();
+    }
+
     ::std::thread::sleep(Duration::from_millis(16)); // ~60fps - VSync in present() handles pacing
   }
 
