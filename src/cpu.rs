@@ -406,17 +406,19 @@ impl CPU {
             // neither buttons nor dpad selected, no buttons pressed
             if value == 0x30 {
               value |= 0xF;
-            }
-            if value == 0x20 {
+              self.ram[address] = value;
+              self.dpad = value;
+              self.buttons = value;
+            } else if value == 0x20 {
               //value |= self.ram[address] & 0x0F;
               value |= self.dpad & 0x0F;
-            }
-            if value == 0x10 {
+              self.dpad = value;
+            } else if value == 0x10 {
               value |= self.buttons & 0x0F;
+              self.buttons = value;
             }
             self.ram[address] = value;
-            self.dpad = value;
-            self.buttons = value;
+            
           }
           0xFF04 => { 
             self.ram[address] = 0;

@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let mut screen_buffer: [[u8; WIDTH]; HEIGHT] = [[0; WIDTH]; HEIGHT];
 
-  let window = video_subsystem.window("rust-sdl3 demo", (WIDTH as u32) * MULTIPLIER, (HEIGHT as u32) * MULTIPLIER)
+  let window = video_subsystem.window("Half Baked Gameboy", (WIDTH as u32) * MULTIPLIER, (HEIGHT as u32) * MULTIPLIER)
       .position_centered()
       .build()
       .unwrap();
@@ -130,25 +130,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let cycles = execute_opcode(&instruction_set, &mut cpu, show_debug_messages);
           cpu.temp_cycles += cycles;
           cpu.update_timer(cycles);
-          //gameboy_doctor_cpu_log(&cpu);
         }
       }
       cpu.temp_cycles -= 456;
       if (scanline as usize) < HEIGHT {
         ppu.update(&mut cpu, &mut screen_buffer, scanline);
-        //ppu.build_background(&mut cpu);
-        //ppu.update_whole_buffer(&mut cpu, &mut screen_buffer);
       } else if (scanline as usize) == HEIGHT {
         cpu.request_vblank_interrupt();
         cpu.set_stat_ppu_mode(1); // set STAT to VBlank
       }
     }
     
-    /*for i in 0..64 {
-      let y = ((i / 8) * 8) as usize;
-      let x = ((i % 8) * 8) as usize;
-      ppu.copy_tile_to_screen_buffer(&mut cpu, &mut screen_buffer, i, y, x);
-    }*/
     ppu.render_sdl_window(&mut canvas, &mut texture, &mut screen_buffer);
     
     for event in event_pump.poll_iter() {
@@ -164,42 +156,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let keys = event_pump.keyboard_state();
     let mut a_button_pressed = false;
     if keys.is_scancode_pressed(Scancode::Down) {
-      cpu.ram[0xFF00] &= 0b11110111;
+      //cpu.ram[0xFF00] &= 0b11110111;
       cpu.dpad &= 0b11110111;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Up) {
-      cpu.ram[0xFF00] &= 0b11111011;
+      //cpu.ram[0xFF00] &= 0b11111011;
       cpu.dpad &= 0b11111011;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Left) {
-      cpu.ram[0xFF00] &= 0b11111101;
+      //cpu.ram[0xFF00] &= 0b11111101;
       cpu.dpad &= 0b11111101;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Right) {
-      cpu.ram[0xFF00] &= 0b11111110;
+      //cpu.ram[0xFF00] &= 0b11111110;
       cpu.dpad &= 0b11111110;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Return) {
-      cpu.ram[0xFF00] &= 0b11110111;
+      //cpu.ram[0xFF00] &= 0b11110111;
       cpu.buttons &= 0b11110111;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::RShift) {
-      cpu.ram[0xFF00] &= 0b11111011;
+      //cpu.ram[0xFF00] &= 0b11111011;
       cpu.buttons &= 0b11111011;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Z) {
-      cpu.ram[0xFF00] &= 0b11111101;
+      //cpu.ram[0xFF00] &= 0b11111101;
       cpu.buttons &= 0b11111101;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::X) {
-      cpu.ram[0xFF00] &= 0b11111110;
+      //cpu.ram[0xFF00] &= 0b11111110;
       cpu.buttons &= 0b11111110;
       a_button_pressed = true;
     }
