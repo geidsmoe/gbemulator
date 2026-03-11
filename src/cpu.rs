@@ -385,9 +385,6 @@ impl CPU {
           // neither dpad or buttons are selected
           if joypad_flags == 0 || joypad_flags == 3 {
             return self.ram[0xFF00] | 0x0F;
-            //self.ram[0xFF00] |= 0x0F;
-            //self.buttons |= 0x0F;
-            //self.dpad |= 0x0F;
           }
           else if joypad_flags == 1 {
             return self.buttons
@@ -410,15 +407,13 @@ impl CPU {
               self.dpad = value;
               self.buttons = value;
             } else if value == 0x20 {
-              //value |= self.ram[address] & 0x0F;
               value |= self.dpad & 0x0F;
               self.dpad = value;
             } else if value == 0x10 {
               value |= self.buttons & 0x0F;
               self.buttons = value;
             }
-            self.ram[address] = value;
-            
+            self.ram[address] = value; 
           }
           0xFF04 => { 
             self.ram[address] = 0;

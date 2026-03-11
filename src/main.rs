@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "Tetris.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_map_change.gb";
+  let file_path = "buttontest.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_map_change.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
 
@@ -156,42 +156,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let keys = event_pump.keyboard_state();
     let mut a_button_pressed = false;
     if keys.is_scancode_pressed(Scancode::Down) {
-      //cpu.ram[0xFF00] &= 0b11110111;
       cpu.dpad &= 0b11110111;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Up) {
-      //cpu.ram[0xFF00] &= 0b11111011;
       cpu.dpad &= 0b11111011;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Left) {
-      //cpu.ram[0xFF00] &= 0b11111101;
       cpu.dpad &= 0b11111101;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Right) {
-      //cpu.ram[0xFF00] &= 0b11111110;
       cpu.dpad &= 0b11111110;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Return) {
-      //cpu.ram[0xFF00] &= 0b11110111;
       cpu.buttons &= 0b11110111;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::RShift) {
-      //cpu.ram[0xFF00] &= 0b11111011;
       cpu.buttons &= 0b11111011;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::Z) {
-      //cpu.ram[0xFF00] &= 0b11111101;
       cpu.buttons &= 0b11111101;
       a_button_pressed = true;
     }
     if keys.is_scancode_pressed(Scancode::X) {
-      //cpu.ram[0xFF00] &= 0b11111110;
       cpu.buttons &= 0b11111110;
       a_button_pressed = true;
     }
