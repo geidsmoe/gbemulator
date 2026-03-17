@@ -17,6 +17,43 @@ pub const WIDTH: usize = 160;
 pub const HEIGHT: usize = 144;
 pub const MULTIPLIER: u32 = 5;
 
+#[derive(Clone, Copy)]
+pub struct ScreenBufferPixel {
+    pub value: u8,
+    pub priority: u8
+}
+
+
+pub struct ObjectAttributes {
+    pub y: u8,
+    pub x: u8,
+    pub tile_index: u8,
+    pub attributes: u8
+}
+
+impl ObjectAttributes {
+    pub fn new(y: u8, x: u8, tile_index: u8, attributes: u8) -> ObjectAttributes {
+        return ObjectAttributes { y, x, tile_index, attributes }
+    }
+
+    // Priority: 0 = No, 1 = BG and Window color indices 1–3 are drawn over this OBJ
+    pub fn get_priority(&self) -> u8 {
+        (self.attributes >> 7) & 1
+    }
+    // Y flip: 0 = Normal, 1 = Entire OBJ is vertically mirrored
+    pub fn get_yflip(&self) -> u8 {
+        (self.attributes >> 6) & 1
+    }
+    // X flip: 0 = Normal, 1 = Entire OBJ is horizontally mirrored
+    pub fn get_xflip(&self) -> u8 {
+        (self.attributes >> 5) & 1
+    }
+    // DMG palette [Non CGB Mode only]: 0 = OBP0, 1 = OBP1
+    pub fn get_dmg_palette(&self) -> u8 {
+        (self.attributes >> 4) & 1
+    }
+}
+
 pub struct PPU {
     pub display: [[u8; WIDTH]; HEIGHT],
     pub scanline: u16,
@@ -139,15 +176,69 @@ impl PPU {
 
     pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) {
         let lcdc_bit0_bg_enable = (cpu.get_lcdc() & 1) == 1;
-
+        let lcdc_bit1_obj_enable = (cpu.get_lcdc() & 2) == 2; 
+        let lcdc_bit2_obj_size = (cpu.get_lcdc() & 4) == 4; // 0 = 8×8; 1 = 8×16
         let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 8) == 8;
         let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 16) == 16;
         let bgp = cpu.ram[0xFF47];
 
+        let obj_height = if lcdc_bit2_obj_size { 16 } else { 8 };
+        let obj_width = 8; // this doesn't vary but it will make later code less painful to read
+        let obj_tileblock_base: usize = 0x8000;
         let bg_tilemap_base: usize = if lcdc_bit3_tile_map_toggle { 0x9C00 } else { 0x9800 };
 
         let scy = cpu.get_scroll_y() as usize;
         let scx = cpu.get_scroll_x() as usize;
+
+        let mut priorities: [u8; WIDTH] = [8; WIDTH];
+
+        let mut oam_memory: u16 = 0xFE00;
+        if lcdc_bit1_obj_enable {
+            let mut objects_to_render: Vec<ObjectAttributes> = Vec::new();
+            let current_y = scanline as i8;
+            // OAM is from FE00-FE9F
+            while oam_memory <= 0xFE9F {
+                // obj_attributes.y includes 16 pixels on either side of the screen 
+                let obj_y = cpu.ram[oam_memory as usize];
+                // object is visible on screen, 10 object max per scanline isn't hit yet, 
+                // and scanline is within the bounds of the object
+                if obj_y.wrapping_add(obj_height) > 16 && obj_y < (HEIGHT as u8 + 16) && objects_to_render.len() < 10 
+                    && obj_y <= (scanline + 16) && (scanline + 16) < (obj_y.wrapping_add(obj_height)) {
+                    let obj = ObjectAttributes::new(
+                        cpu.ram[oam_memory as usize],
+                        cpu.ram[(oam_memory + 1) as usize], 
+                        cpu.ram[(oam_memory + 2) as usize],
+                        cpu.ram[(oam_memory + 3) as usize]
+                    );
+                    objects_to_render.push(obj);
+                }
+                oam_memory += 4;
+            }
+
+            'obj_screen_loop: for screen_x in 0..WIDTH {
+                for obj_attrs in &objects_to_render {
+                    // object is on screen and current pixel on scanline is in this object
+                    if obj_attrs.x > 0 && obj_attrs.x < (WIDTH as u8 + 8) && 
+                        (screen_x + 8) < (obj_attrs.x.wrapping_add(obj_width)) as usize && (screen_x + 8) >= obj_attrs.x as usize {
+                        let tile_pixel_row = (scanline + 16 - obj_attrs.y) as usize;
+                        let tile_pixel_col = screen_x + 8 - obj_attrs.x as usize;
+                        let tile_start_address: usize = obj_tileblock_base + 16 * obj_attrs.tile_index as usize;
+                        let lsb = cpu.ram[tile_start_address + 2 * tile_pixel_row];
+                        let msb = cpu.ram[tile_start_address + 2 * tile_pixel_row + 1];
+                        let color_lbit = (lsb >> (7 - tile_pixel_col)) & 1;
+                        let color_mbit = (msb >> (7 - tile_pixel_col)) & 1;
+                        let color_id = color_mbit << 1 | color_lbit;
+
+                        // Remap through BGP palette register
+                        let shade = (bgp >> (color_id * 2)) & 0x03;
+                        
+                        priorities[screen_x] = obj_attrs.get_priority();
+                        screen_buffer[scanline as usize][screen_x] = shade;
+                        break;
+                    } 
+                }
+            }
+        }
 
         // The row in the 256x256 background that this scanline maps to
         let bg_y = (scy + scanline as usize) % 256;
@@ -177,7 +268,9 @@ impl PPU {
 
                 // Remap through BGP palette register
                 let shade = (bgp >> (color_id * 2)) & 0x03;
-                screen_buffer[scanline as usize][screen_x] = shade;
+                if priorities[screen_x] != 0 && shade != 0 {
+                    screen_buffer[scanline as usize][screen_x] = shade;
+                }
             }
 
             // render window

@@ -19,7 +19,7 @@ use sdl3::keyboard::Scancode;
 
 use crate::cpu::CPU;
 use crate::instructions::{InstructionSet, execute_opcode};
-use crate::ppu::{PPU, WIDTH, HEIGHT, MULTIPLIER};
+use crate::ppu::{PPU, ScreenBufferPixel, WIDTH, HEIGHT, MULTIPLIER};
 
 pub fn gameboy_doctor_cpu_log(cpu: &CPU) {
   //prints A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "buttontest.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_map_change.gb";
+  let file_path = "Tetris.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_en_change.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
 
