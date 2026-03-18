@@ -380,6 +380,15 @@ impl CPU {
       }
 
       pub fn read(&self, address: usize) -> u8 {
+        // VRAM is inaccessble during PPU mode 3 (drawing pixels)
+        if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
+          return 0xFF;
+        }
+        // OAM is inaccessible during PPU modes 2 and 3 (OAM scan and drawing pixels)
+        if 0xFE00 <= address && address <= 0xFE9F && self.ppu_mode > 1 {
+          return 0xFF;
+        }
+        
         if address == 0xFF00 {
           let joypad_flags = (self.ram[0xFF00] >> 4) & 0x3;
           // neither dpad or buttons are selected
@@ -398,6 +407,15 @@ impl CPU {
       }
 
       pub fn write(&mut self, address: usize, mut value: u8) {
+        // VRAM is inaccessble during PPU mode 3 (drawing pixels)
+        if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
+          return;
+        }
+        // OAM is inaccessible during PPU modes 2 and 3 (OAM scan and drawing pixels)
+        if 0xFE00 <= address && address <= 0xFE9F && self.ppu_mode > 1 {
+          return;
+        }
+        
         match address {
           0xFF00 => {
             // neither buttons nor dpad selected, no buttons pressed

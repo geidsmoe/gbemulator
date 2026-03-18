@@ -101,10 +101,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   'running: loop {
     for scanline in 0..154 {
       cpu.set_ly(scanline);
+      let mut obj_dot_penalty = 0;
+      if (scanline as usize) < HEIGHT {
+        obj_dot_penalty = ppu.update(&mut cpu, &mut screen_buffer, scanline);
+      } else if (scanline as usize) == HEIGHT {
+        cpu.request_vblank_interrupt();
+        cpu.set_stat_ppu_mode(1); // set STAT to VBlank
+      }
       
       while cpu.temp_cycles < 456 {
         let scroll_x = cpu.get_scroll_x() as usize;
-        let mode3_drawing_length: u32 = (HEIGHT as u32) + 12 + (scroll_x as u32 % 8);
+        let mode3_drawing_length: u32 = (HEIGHT as u32) + 12 + (scroll_x as u32 % 8) + obj_dot_penalty;
         let hblank_length = 376 - mode3_drawing_length;
         if cpu.temp_cycles < 80 && cpu.ppu_mode != 2 { // OAM
           cpu.set_stat_ppu_mode(2);
@@ -133,12 +140,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
       }
       cpu.temp_cycles -= 456;
-      if (scanline as usize) < HEIGHT {
-        ppu.update(&mut cpu, &mut screen_buffer, scanline);
-      } else if (scanline as usize) == HEIGHT {
-        cpu.request_vblank_interrupt();
-        cpu.set_stat_ppu_mode(1); // set STAT to VBlank
-      }
     }
     
     ppu.render_sdl_window(&mut canvas, &mut texture, &mut screen_buffer);

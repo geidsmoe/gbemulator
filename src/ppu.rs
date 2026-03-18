@@ -23,7 +23,7 @@ pub struct ScreenBufferPixel {
     pub priority: u8
 }
 
-
+#[derive(Clone, Copy, PartialEq)]
 pub struct ObjectAttributes {
     pub y: u8,
     pub x: u8,
@@ -174,13 +174,17 @@ impl PPU {
         }   
     }
 
-    pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) {
+    pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) -> u32 {
+        let mut oam_dot_penalty = 0;
+        
         let lcdc_bit0_bg_enable = (cpu.get_lcdc() & 1) == 1;
         let lcdc_bit1_obj_enable = (cpu.get_lcdc() & 2) == 2; 
         let lcdc_bit2_obj_size = (cpu.get_lcdc() & 4) == 4; // 0 = 8×8; 1 = 8×16
         let lcdc_bit3_tile_map_toggle = (cpu.get_lcdc() & 8) == 8;
         let lcdc_bit4_tile_data_area = (cpu.get_lcdc() & 16) == 16;
         let bgp = cpu.ram[0xFF47];
+        let obp0 = cpu.ram[0xFF48];
+        let obp1 = cpu.ram[0xFF49];
 
         let obj_height = if lcdc_bit2_obj_size { 16 } else { 8 };
         let obj_width = 8; // this doesn't vary but it will make later code less painful to read
@@ -219,9 +223,6 @@ impl PPU {
                 let shade = (bgp >> (color_id * 2)) & 0x03;
                 screen_buffer[scanline as usize][screen_x] = shade;
             }
-
-            // render window
-
         }
 
         let mut oam_memory: u16 = 0xFE00;
@@ -245,14 +246,55 @@ impl PPU {
                 }
                 oam_memory += 4;
             }
+            /*  Potential TODO: the DMG considers objects in order of X attribute, not order in OAM. 
+                The CGP considers objects in OAM address order though, so this *should* be okay to get games running */ 
 
-            'obj_screen_loop: for screen_x in 0..WIDTH {
+            let mut objects_added_to_penalty: Vec<ObjectAttributes> = Vec::new();
+            let mut bg_tiles_added_to_penalty = Vec::new();
+            
+            for screen_x in 0..WIDTH {
                 for obj_attrs in &objects_to_render {
                     // object is on screen and current pixel on scanline is in this object
                     if obj_attrs.x > 0 && obj_attrs.x < (WIDTH as u8 + 8) && 
                         (screen_x + 8) < (obj_attrs.x.wrapping_add(obj_width)) as usize && (screen_x + 8) >= obj_attrs.x as usize {
-                        let tile_pixel_row = (scanline + 16 - obj_attrs.y) as usize;
-                        let tile_pixel_col = screen_x + 8 - obj_attrs.x as usize;
+                        let mut tile_pixel_row = (scanline + 16 - obj_attrs.y) as usize;
+                        if obj_attrs.get_yflip() == 1 {
+                            tile_pixel_row = tile_pixel_row.abs_diff(obj_height as usize - 1);
+                        }
+                        let mut tile_pixel_col = screen_x + 8 - obj_attrs.x as usize;
+                        if obj_attrs.get_xflip() == 1 {
+                            tile_pixel_col = tile_pixel_col.abs_diff(7);
+                        }
+                        
+                        if !objects_added_to_penalty.contains(obj_attrs) {
+                            // Incur a flat, 6-dot penalty (from fetching the OBJ’s tile).
+                            let mut current_obj_penalty = 6;
+                            
+                            let bg_y = (scy + scanline as usize) % 256;
+                            let bg_tile_row = bg_y / 8;
+                            // find where in the background the object's leftmost pixel is
+                            let obj_x_bg_x = (obj_attrs.x as i16 - 8 + scx as i16).rem_euclid(256);
+                            let bg_tile_col = obj_x_bg_x / 8;
+                            let bg_pixel_col = obj_x_bg_x % 8;
+
+                            let tilemap_index = bg_tile_row * 32 + bg_tile_col as usize;
+                            if !bg_tiles_added_to_penalty.contains(&tilemap_index) {
+                                if obj_attrs.x == 0 {
+                                    current_obj_penalty = 11;
+                                } else {
+                                    let mut bg_tile_pixels_to_right = 7 - bg_pixel_col;
+                                    bg_tile_pixels_to_right -= 2;
+                                    if bg_tile_pixels_to_right > 0 {
+                                        current_obj_penalty += bg_tile_pixels_to_right;
+                                    }
+                                }
+                                bg_tiles_added_to_penalty.push(tilemap_index);
+                            }
+                            objects_added_to_penalty.push(*obj_attrs);
+                            oam_dot_penalty += current_obj_penalty;
+                        }
+
+
                         let tile_start_address: usize = obj_tileblock_base + 16 * obj_attrs.tile_index as usize;
                         let lsb = cpu.ram[tile_start_address + 2 * tile_pixel_row];
                         let msb = cpu.ram[tile_start_address + 2 * tile_pixel_row + 1];
@@ -260,9 +302,9 @@ impl PPU {
                         let color_mbit = (msb >> (7 - tile_pixel_col)) & 1;
                         let color_id = color_mbit << 1 | color_lbit;
 
-                        // Remap through BGP palette register
-                        let shade = (bgp >> (color_id * 2)) & 0x03;
-                        
+                        // Remap through OBP0 or OBP1 palette register
+                        let object_palette = if obj_attrs.get_dmg_palette() == 1 { obp1 } else { obp0 };
+                        let shade = (object_palette >> (color_id * 2)) & 0x03;
                         
                         if obj_attrs.get_priority() == 0 || screen_buffer[scanline as usize][screen_x] == 0 {
                             screen_buffer[scanline as usize][screen_x] = shade;
@@ -274,6 +316,6 @@ impl PPU {
         }
         
         
-
+        return oam_dot_penalty as u32;
     }
 }
