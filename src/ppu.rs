@@ -190,12 +190,43 @@ impl PPU {
         let scy = cpu.get_scroll_y() as usize;
         let scx = cpu.get_scroll_x() as usize;
 
-        let mut priorities: [u8; WIDTH] = [8; WIDTH];
+        // The row in the 256x256 background that this scanline maps to
+        let bg_y = (scy + scanline as usize) % 256;
+        let tile_row = bg_y / 8;
+        let pixel_row = bg_y % 8;
+
+        if lcdc_bit0_bg_enable {
+            // render background
+            for screen_x in 0..WIDTH {
+                let bg_x = (scx + screen_x) % 256;
+                let tile_col = bg_x / 8;
+                let pixel_col = bg_x % 8;
+
+                let tilemap_index = tile_row * 32 + tile_col;
+                let tile_start_address: usize = if lcdc_bit4_tile_data_area {
+                    0x8000 + 16 * cpu.ram[bg_tilemap_base + tilemap_index] as usize
+                } else {
+                    (0x9000i32 + 16 * cpu.ram[bg_tilemap_base + tilemap_index] as i8 as i32) as usize
+                };
+
+                let lsb = cpu.ram[tile_start_address + 2 * pixel_row];
+                let msb = cpu.ram[tile_start_address + 2 * pixel_row + 1];
+                let color_lbit = (lsb >> (7 - pixel_col)) & 1;
+                let color_mbit = (msb >> (7 - pixel_col)) & 1;
+                let color_id = color_mbit << 1 | color_lbit;
+
+                // Remap through BGP palette register
+                let shade = (bgp >> (color_id * 2)) & 0x03;
+                screen_buffer[scanline as usize][screen_x] = shade;
+            }
+
+            // render window
+
+        }
 
         let mut oam_memory: u16 = 0xFE00;
         if lcdc_bit1_obj_enable {
             let mut objects_to_render: Vec<ObjectAttributes> = Vec::new();
-            let current_y = scanline as i8;
             // OAM is from FE00-FE9F
             while oam_memory <= 0xFE9F {
                 // obj_attributes.y includes 16 pixels on either side of the screen 
@@ -232,49 +263,14 @@ impl PPU {
                         // Remap through BGP palette register
                         let shade = (bgp >> (color_id * 2)) & 0x03;
                         
-                        priorities[screen_x] = obj_attrs.get_priority();
-                        screen_buffer[scanline as usize][screen_x] = shade;
+                        
+                        if obj_attrs.get_priority() == 0 || screen_buffer[scanline as usize][screen_x] == 0 {
+                            screen_buffer[scanline as usize][screen_x] = shade;
+                        }  
                         break;
                     } 
                 }
             }
-        }
-
-        // The row in the 256x256 background that this scanline maps to
-        let bg_y = (scy + scanline as usize) % 256;
-        let tile_row = bg_y / 8;
-        let pixel_row = bg_y % 8;
-
-
-        if lcdc_bit0_bg_enable {
-            // render background
-            for screen_x in 0..WIDTH {
-                let bg_x = (scx + screen_x) % 256;
-                let tile_col = bg_x / 8;
-                let pixel_col = bg_x % 8;
-
-                let tilemap_index = tile_row * 32 + tile_col;
-                let tile_start_address: usize = if lcdc_bit4_tile_data_area {
-                    0x8000 + 16 * cpu.ram[bg_tilemap_base + tilemap_index] as usize
-                } else {
-                    (0x9000i32 + 16 * cpu.ram[bg_tilemap_base + tilemap_index] as i8 as i32) as usize
-                };
-
-                let lsb = cpu.ram[tile_start_address + 2 * pixel_row];
-                let msb = cpu.ram[tile_start_address + 2 * pixel_row + 1];
-                let color_lbit = (lsb >> (7 - pixel_col)) & 1;
-                let color_mbit = (msb >> (7 - pixel_col)) & 1;
-                let color_id = color_mbit << 1 | color_lbit;
-
-                // Remap through BGP palette register
-                let shade = (bgp >> (color_id * 2)) & 0x03;
-                if priorities[screen_x] != 0 && shade != 0 {
-                    screen_buffer[scanline as usize][screen_x] = shade;
-                }
-            }
-
-            // render window
-
         }
         
         

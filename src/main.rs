@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "Tetris.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_en_change.gb";
+  let file_path = "dr_mario.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_en_change.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
 
