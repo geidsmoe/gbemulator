@@ -118,9 +118,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           if cpu.get_stat() & (1 << 5) != 0 { // game wants OAM interrupt?
               cpu.request_lcd_interrupt();
           }
-        } else if cpu.temp_cycles < mode3_drawing_length + 80 && cpu.ppu_mode != 3 { // Drawing
+        } else if cpu.temp_cycles >= 80 && cpu.temp_cycles < 80 + mode3_drawing_length && cpu.ppu_mode != 3 { // Drawing
           cpu.set_stat_ppu_mode(3);
-        } else if cpu.temp_cycles < 80 + mode3_drawing_length + hblank_length && cpu.ppu_mode != 0 { // Hblank
+        } else if cpu.temp_cycles >= 80 + mode3_drawing_length && cpu.temp_cycles < 80 + mode3_drawing_length + hblank_length && cpu.ppu_mode != 0 { // Hblank
           cpu.set_stat_ppu_mode(0);
           if cpu.get_stat() & (1 << 3) != 0 { // game wants HBlank interrupt?
               cpu.request_lcd_interrupt();

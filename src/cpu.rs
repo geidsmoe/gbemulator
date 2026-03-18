@@ -408,9 +408,9 @@ impl CPU {
 
       pub fn write(&mut self, address: usize, mut value: u8) {
         // VRAM is inaccessble during PPU mode 3 (drawing pixels)
-        if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
-          return;
-        }
+        // if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
+        //   return;
+        // }
         // OAM is inaccessible during PPU modes 2 and 3 (OAM scan and drawing pixels)
         if 0xFE00 <= address && address <= 0xFE9F && self.ppu_mode > 1 {
           return;

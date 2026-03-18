@@ -254,6 +254,34 @@ impl PPU {
             
             for screen_x in 0..WIDTH {
                 for obj_attrs in &objects_to_render {
+                    if !objects_added_to_penalty.contains(obj_attrs) {
+                        // Incur a flat, 6-dot penalty (from fetching the OBJ’s tile).
+                        let mut current_obj_penalty = 6;
+                        
+                        let bg_y = (scy + scanline as usize) % 256;
+                        let bg_tile_row = bg_y / 8;
+                        // find where in the background the object's leftmost pixel is
+                        let obj_x_bg_x = (obj_attrs.x as i16 - 8 + scx as i16).rem_euclid(256);
+                        let bg_tile_col = obj_x_bg_x / 8;
+                        let bg_pixel_col = obj_x_bg_x % 8;
+
+                        let tilemap_index = bg_tile_row * 32 + bg_tile_col as usize;
+                        if !bg_tiles_added_to_penalty.contains(&tilemap_index) {
+                            if obj_attrs.x == 0 {
+                                current_obj_penalty = 11;
+                            } else {
+                                let mut bg_tile_pixels_to_right = 7 - bg_pixel_col;
+                                bg_tile_pixels_to_right -= 2;
+                                if bg_tile_pixels_to_right > 0 {
+                                    current_obj_penalty += bg_tile_pixels_to_right;
+                                }
+                            bg_tiles_added_to_penalty.push(tilemap_index);
+                            }
+                            objects_added_to_penalty.push(*obj_attrs);
+                            oam_dot_penalty += current_obj_penalty;
+                        }
+                    }
+
                     // object is on screen and current pixel on scanline is in this object
                     if obj_attrs.x > 0 && obj_attrs.x < (WIDTH as u8 + 8) && 
                         (screen_x + 8) < (obj_attrs.x.wrapping_add(obj_width)) as usize && (screen_x + 8) >= obj_attrs.x as usize {
@@ -265,35 +293,6 @@ impl PPU {
                         if obj_attrs.get_xflip() == 1 {
                             tile_pixel_col = tile_pixel_col.abs_diff(7);
                         }
-                        
-                        if !objects_added_to_penalty.contains(obj_attrs) {
-                            // Incur a flat, 6-dot penalty (from fetching the OBJ’s tile).
-                            let mut current_obj_penalty = 6;
-                            
-                            let bg_y = (scy + scanline as usize) % 256;
-                            let bg_tile_row = bg_y / 8;
-                            // find where in the background the object's leftmost pixel is
-                            let obj_x_bg_x = (obj_attrs.x as i16 - 8 + scx as i16).rem_euclid(256);
-                            let bg_tile_col = obj_x_bg_x / 8;
-                            let bg_pixel_col = obj_x_bg_x % 8;
-
-                            let tilemap_index = bg_tile_row * 32 + bg_tile_col as usize;
-                            if !bg_tiles_added_to_penalty.contains(&tilemap_index) {
-                                if obj_attrs.x == 0 {
-                                    current_obj_penalty = 11;
-                                } else {
-                                    let mut bg_tile_pixels_to_right = 7 - bg_pixel_col;
-                                    bg_tile_pixels_to_right -= 2;
-                                    if bg_tile_pixels_to_right > 0 {
-                                        current_obj_penalty += bg_tile_pixels_to_right;
-                                    }
-                                }
-                                bg_tiles_added_to_penalty.push(tilemap_index);
-                            }
-                            objects_added_to_penalty.push(*obj_attrs);
-                            oam_dot_penalty += current_obj_penalty;
-                        }
-
 
                         let tile_start_address: usize = obj_tileblock_base + 16 * obj_attrs.tile_index as usize;
                         let lsb = cpu.ram[tile_start_address + 2 * tile_pixel_row];
@@ -306,7 +305,7 @@ impl PPU {
                         let object_palette = if obj_attrs.get_dmg_palette() == 1 { obp1 } else { obp0 };
                         let shade = (object_palette >> (color_id * 2)) & 0x03;
                         
-                        if obj_attrs.get_priority() == 0 || screen_buffer[scanline as usize][screen_x] == 0 {
+                        if color_id != 0 && (obj_attrs.get_priority() == 0 || screen_buffer[scanline as usize][screen_x] == 0) {
                             screen_buffer[scanline as usize][screen_x] = shade;
                         }  
                         break;
