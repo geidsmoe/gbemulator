@@ -251,7 +251,7 @@ impl PPU {
 
             let mut objects_added_to_penalty: Vec<ObjectAttributes> = Vec::new();
             let mut bg_tiles_added_to_penalty = Vec::new();
-            
+
             for screen_x in 0..WIDTH {
                 for obj_attrs in &objects_to_render {
                     if !objects_added_to_penalty.contains(obj_attrs) {
@@ -277,9 +277,9 @@ impl PPU {
                                 }
                             bg_tiles_added_to_penalty.push(tilemap_index);
                             }
-                            objects_added_to_penalty.push(*obj_attrs);
-                            oam_dot_penalty += current_obj_penalty;
                         }
+                        objects_added_to_penalty.push(*obj_attrs);
+                        oam_dot_penalty += current_obj_penalty;
                     }
 
                     // object is on screen and current pixel on scanline is in this object

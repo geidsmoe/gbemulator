@@ -380,13 +380,16 @@ impl CPU {
       }
 
       pub fn read(&self, address: usize) -> u8 {
-        // VRAM is inaccessble during PPU mode 3 (drawing pixels)
-        if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
-          return 0xFF;
-        }
-        // OAM is inaccessible during PPU modes 2 and 3 (OAM scan and drawing pixels)
-        if 0xFE00 <= address && address <= 0xFE9F && self.ppu_mode > 1 {
-          return 0xFF;
+        let lcd_enabled = (self.get_lcdc() & 0x80) != 0;
+        if lcd_enabled {
+          // VRAM is inaccessble during PPU mode 3 (drawing pixels)
+          if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
+            return 0xFF;
+          }
+          // OAM is inaccessible during PPU modes 2 and 3 (OAM scan and drawing pixels)
+          if 0xFE00 <= address && address <= 0xFE9F && self.ppu_mode > 1 {
+            return 0xFF;
+          }
         }
         
         if address == 0xFF00 {
@@ -407,13 +410,16 @@ impl CPU {
       }
 
       pub fn write(&mut self, address: usize, mut value: u8) {
-        // VRAM is inaccessble during PPU mode 3 (drawing pixels)
-        // if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
-        //   return;
-        // }
-        // OAM is inaccessible during PPU modes 2 and 3 (OAM scan and drawing pixels)
-        if 0xFE00 <= address && address <= 0xFE9F && self.ppu_mode > 1 {
-          return;
+        let lcd_enabled = (self.get_lcdc() & 0x80) != 0;
+        if lcd_enabled {
+          // VRAM is inaccessble during PPU mode 3 (drawing pixels)
+          if 0x8000 <= address && address <= 0x9FFF && self.ppu_mode == 3 {
+            return;
+          }
+          // OAM is inaccessible during PPU modes 2 and 3 (OAM scan and drawing pixels)
+          if 0xFE00 <= address && address <= 0xFE9F && self.ppu_mode > 1 {
+            return;
+          }
         }
         
         match address {
@@ -436,6 +442,12 @@ impl CPU {
           0xFF04 => { 
             self.ram[address] = 0;
             self.div_cycles = 0;
+          }
+          0xFF40 => {
+            if (self.ram[0xFF40] & 0x80) != 0 && (value & 0x80) == 0 {
+              self.set_stat_ppu_mode(0);
+            }
+            self.ram[address] = value;
           }
           0xFF43 => {
             self.ram[address] = value;
@@ -542,7 +554,7 @@ impl CPU {
         }
       }
 
-      pub fn get_ly(&mut self) -> u8 {
+      pub fn get_ly(&self) -> u8 {
         self.ram[0xFF44]
       }
 
@@ -553,7 +565,7 @@ impl CPU {
         self.write(0xFF41, new_value);
       }
 
-      pub fn get_stat(&mut self) -> u8 {
+      pub fn get_stat(&self) -> u8 {
         self.ram[0xFF41]
       }
 
@@ -582,15 +594,15 @@ impl CPU {
         self.interrupt_flag_request |= 0x10;
       }
 
-      pub fn get_lcdc(&mut self) -> u8 {
+      pub fn get_lcdc(&self) -> u8 {
         self.ram[0xFF40]
       }
 
-      pub fn get_scroll_y(&mut self) -> u8 {
+      pub fn get_scroll_y(&self) -> u8 {
         self.ram[0xFF42]
       }
 
-      pub fn get_scroll_x(&mut self) -> u8 {
+      pub fn get_scroll_x(&self) -> u8 {
         self.ram[0xFF43]
       }
 }

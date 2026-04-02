@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut cpu = CPU::new();
   let mut ppu = PPU::new();
 
-  let file_path = "dr_mario.gb"; //"mealybug-tearoom-tests/m3_lcdc_bg_en_change.gb";
+  let file_path = "dr_mario.gb"; //"mealybug-tearoom-tests/m3_obp0_change.gb";
   let bytes: Vec<u8> = fs::read(Path::new(&file_path))?;
   cpu.ram[..bytes.len()].copy_from_slice(&bytes);
 
@@ -111,19 +111,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       
       while cpu.temp_cycles < 456 {
         let scroll_x = cpu.get_scroll_x() as usize;
-        let mode3_drawing_length: u32 = (HEIGHT as u32) + 12 + (scroll_x as u32 % 8) + obj_dot_penalty;
+        let mode3_drawing_length: u32 = (HEIGHT as u32) + 12 + obj_dot_penalty;
         let hblank_length = 376 - mode3_drawing_length;
-        if cpu.temp_cycles < 80 && cpu.ppu_mode != 2 { // OAM
-          cpu.set_stat_ppu_mode(2);
-          if cpu.get_stat() & (1 << 5) != 0 { // game wants OAM interrupt?
-              cpu.request_lcd_interrupt();
-          }
-        } else if cpu.temp_cycles >= 80 && cpu.temp_cycles < 80 + mode3_drawing_length && cpu.ppu_mode != 3 { // Drawing
-          cpu.set_stat_ppu_mode(3);
-        } else if cpu.temp_cycles >= 80 + mode3_drawing_length && cpu.temp_cycles < 80 + mode3_drawing_length + hblank_length && cpu.ppu_mode != 0 { // Hblank
-          cpu.set_stat_ppu_mode(0);
-          if cpu.get_stat() & (1 << 3) != 0 { // game wants HBlank interrupt?
-              cpu.request_lcd_interrupt();
+        let lcd_enabled = (cpu.get_lcdc() & 0x80) != 0;
+        if lcd_enabled && (scanline as usize) < HEIGHT {
+          if cpu.temp_cycles < 80 && cpu.ppu_mode != 2 { // OAM
+            cpu.set_stat_ppu_mode(2);
+            if cpu.get_stat() & (1 << 5) != 0 { // game wants OAM interrupt?
+                cpu.request_lcd_interrupt();
+            }
+          } else if cpu.temp_cycles >= 80 && cpu.temp_cycles < 80 + mode3_drawing_length && cpu.ppu_mode != 3 { // Drawing
+            cpu.set_stat_ppu_mode(3);
+          } else if cpu.temp_cycles >= 80 + mode3_drawing_length && cpu.temp_cycles < 80 + mode3_drawing_length + hblank_length && cpu.ppu_mode != 0 { // Hblank
+            cpu.set_stat_ppu_mode(0);
+            if cpu.get_stat() & (1 << 3) != 0 { // game wants HBlank interrupt?
+                cpu.request_lcd_interrupt();
+            }
           }
         }
 
