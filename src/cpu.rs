@@ -548,7 +548,7 @@ impl CPU {
         }
       }
 
-      pub fn get_ly(&mut self) -> u8 {
+      pub fn get_ly(&self) -> u8 {
         self.ram[0xFF44]
       }
 
@@ -559,7 +559,7 @@ impl CPU {
         self.write(0xFF41, new_value);
       }
 
-      pub fn get_stat(&mut self) -> u8 {
+      pub fn get_stat(&self) -> u8 {
         self.ram[0xFF41]
       }
 
@@ -588,15 +588,15 @@ impl CPU {
         self.interrupt_flag_request |= 0x10;
       }
 
-      pub fn get_lcdc(&mut self) -> u8 {
+      pub fn get_lcdc(&self) -> u8 {
         self.ram[0xFF40]
       }
 
-      pub fn get_scroll_y(&mut self) -> u8 {
+      pub fn get_scroll_y(&self) -> u8 {
         self.ram[0xFF42]
       }
 
-      pub fn get_scroll_x(&mut self) -> u8 {
+      pub fn get_scroll_x(&self) -> u8 {
         self.ram[0xFF43]
       }
 }
