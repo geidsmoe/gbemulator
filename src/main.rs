@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       cpu.set_ly(scanline);
       let mut obj_dot_penalty = 0;
       if (scanline as usize) < HEIGHT {
-        obj_dot_penalty = ppu.update(&mut cpu, &mut screen_buffer, scanline);
+        obj_dot_penalty = ppu.update_new(&mut cpu, &mut screen_buffer, scanline);
       } else if (scanline as usize) == HEIGHT {
         cpu.request_vblank_interrupt();
         cpu.set_stat_ppu_mode(1); // set STAT to VBlank

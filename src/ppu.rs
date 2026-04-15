@@ -174,6 +174,160 @@ impl PPU {
         }   
     }
 
+    pub fn update_new(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) -> u32 {
+        let lcdc = cpu.get_lcdc();
+        let bg_win_enable  = (lcdc & 0x01) != 0; // BG & Window master enable (DMG)
+        let obj_enable     = (lcdc & 0x02) != 0;
+        let obj_tall       = (lcdc & 0x04) != 0; // false=8×8, true=8×16
+        let bg_tilemap_hi  = (lcdc & 0x08) != 0; // false=$9800, true=$9C00
+        let tile_data_hi   = (lcdc & 0x10) != 0; // false=$8800 signed, true=$8000 unsigned
+        let win_enable     = (lcdc & 0x20) != 0;
+        let win_tilemap_hi = (lcdc & 0x40) != 0;
+
+        let bgp  = cpu.ram[0xFF47];
+        let obp0 = cpu.ram[0xFF48];
+        let obp1 = cpu.ram[0xFF49];
+        let scy  = cpu.get_scroll_y() as usize;
+        let scx  = cpu.get_scroll_x() as usize;
+        let wy   = cpu.ram[0xFF4A] as usize;
+        let wx   = cpu.ram[0xFF4B] as usize;
+
+        let obj_height: usize = if obj_tall { 16 } else { 8 };
+        let sl = scanline as usize;
+
+        // ── Collect sprites for this scanline (max 10, OAM order) ───────
+        let mut sprites: Vec<ObjectAttributes> = Vec::new();
+        for i in 0..40usize {
+            if sprites.len() == 10 { break; }
+            let base = 0xFE00 + i * 4;
+            let obj_y = cpu.ram[base] as usize;
+            // A sprite is on this scanline when: obj_y <= scanline+16 < obj_y+obj_height
+            if obj_y <= sl + 16 && sl + 16 < obj_y + obj_height {
+                sprites.push(ObjectAttributes::new(
+                    cpu.ram[base],
+                    cpu.ram[base + 1],
+                    cpu.ram[base + 2],
+                    cpu.ram[base + 3],
+                ));
+            }
+        }
+
+        // ── OBJ mode-3 dot penalty ───────────────────────────────────────
+        // Each sprite costs 6 base dots plus up to 5 variable dots.
+        // The variable portion is the number of BG fetch pipeline dots already
+        // spent on the current tile when the sprite is encountered:
+        //   extra = (obj.x + scx) % 8, capped at 5.
+        // Sprites at x=0 are off-screen but still penalise the full 11 dots.
+        let oam_dot_penalty: u32 = sprites.iter().map(|obj| {
+            let extra = if obj.x == 0 {
+                5
+            } else {
+                ((obj.x as usize + scx) % 8).min(5) as u32
+            };
+            6 + extra
+        }).sum();
+
+        let bg_tilemap_base:  usize = if bg_tilemap_hi  { 0x9C00 } else { 0x9800 };
+        let win_tilemap_base: usize = if win_tilemap_hi { 0x9C00 } else { 0x9800 };
+
+        // Is the window active on this scanline?
+        let win_y_active = win_enable && bg_win_enable && sl >= wy;
+        // wx=7 → window left edge = screen x=0; wx<7 is undefined, saturating_sub handles it.
+        let win_left = wx.saturating_sub(7);
+
+        let bg_y = (scy + sl) % 256;
+
+        // ── Per-pixel rendering ─────────────────────────────────────────
+        for screen_x in 0..WIDTH {
+            let mut bg_color_id: u8 = 0;
+
+            if bg_win_enable {
+                let in_window = win_y_active && screen_x >= win_left;
+
+                if in_window {
+                    // Window pixel — window has its own tile coordinates
+                    let win_px    = screen_x - win_left;
+                    let win_py    = sl - wy;
+                    let tile_col  = win_px / 8;
+                    let tile_row  = win_py / 8;
+                    let pixel_col = win_px % 8;
+                    let pixel_row = win_py % 8;
+
+                    let tile_start = if tile_data_hi {
+                        0x8000 + 16 * cpu.ram[win_tilemap_base + tile_row * 32 + tile_col] as usize
+                    } else {
+                        (0x9000i32 + 16 * cpu.ram[win_tilemap_base + tile_row * 32 + tile_col] as i8 as i32) as usize
+                    };
+                    let lsb = cpu.ram[tile_start + 2 * pixel_row];
+                    let msb = cpu.ram[tile_start + 2 * pixel_row + 1];
+                    bg_color_id = ((msb >> (7 - pixel_col)) & 1) << 1
+                                | ((lsb >> (7 - pixel_col)) & 1);
+                } else {
+                    // Background pixel
+                    let bg_x      = (scx + screen_x) % 256;
+                    let tile_col  = bg_x / 8;
+                    let tile_row  = bg_y / 8;
+                    let pixel_col = bg_x % 8;
+                    let pixel_row = bg_y % 8;
+
+                    let tile_start = if tile_data_hi {
+                        0x8000 + 16 * cpu.ram[bg_tilemap_base + tile_row * 32 + tile_col] as usize
+                    } else {
+                        (0x9000i32 + 16 * cpu.ram[bg_tilemap_base + tile_row * 32 + tile_col] as i8 as i32) as usize
+                    };
+                    let lsb = cpu.ram[tile_start + 2 * pixel_row];
+                    let msb = cpu.ram[tile_start + 2 * pixel_row + 1];
+                    bg_color_id = ((msb >> (7 - pixel_col)) & 1) << 1
+                                | ((lsb >> (7 - pixel_col)) & 1);
+                }
+            }
+
+            screen_buffer[sl][screen_x] = (bgp >> (bg_color_id * 2)) & 0x03;
+
+            // ── Sprite overlay ──────────────────────────────────────────
+            if obj_enable {
+                for obj in &sprites {
+                    // x=0 means the sprite is shifted fully off the left edge — skip
+                    if obj.x == 0 { continue; }
+                    let obj_left = obj.x.wrapping_sub(8) as usize;
+                    if screen_x < obj_left || screen_x >= obj_left.wrapping_add(8) { continue; }
+
+                    let mut tile_px_col = screen_x.wrapping_sub(obj_left);
+                    if obj.get_xflip() == 1 { tile_px_col = 7usize.wrapping_sub(tile_px_col); }
+
+                    let mut tile_px_row = (sl + 16) - obj.y as usize;
+                    if obj.get_yflip() == 1 { tile_px_row = obj_height.wrapping_sub(1).wrapping_sub(tile_px_row); }
+
+                    // In 8×16 mode bit 0 of tile index selects top/bottom tile
+                    let (tile_idx, row_in_tile) = if obj_tall {
+                        let base = obj.tile_index & 0xFE;
+                        if tile_px_row < 8 { (base, tile_px_row) }
+                        else               { (base.wrapping_add(1), tile_px_row.wrapping_sub(8)) }
+                    } else {
+                        (obj.tile_index, tile_px_row)
+                    };
+
+                    let tile_start = 0x8000 + 16 * tile_idx as usize;
+                    let lsb = cpu.ram[tile_start + 2 * row_in_tile];
+                    let msb = cpu.ram[tile_start + 2 * row_in_tile + 1];
+                    let color_id = ((msb >> (7 - tile_px_col)) & 1) << 1
+                                 | ((lsb >> (7 - tile_px_col)) & 1);
+
+                    if color_id == 0 { continue; } // color 0 is always transparent
+
+                    // BG-over-OBJ priority: BG/Win colors 1-3 win over this sprite
+                    if obj.get_priority() == 1 && bg_color_id != 0 { break; }
+
+                    let palette = if obj.get_dmg_palette() == 1 { obp1 } else { obp0 };
+                    screen_buffer[sl][screen_x] = (palette >> (color_id * 2)) & 0x03;
+                    break; // first non-transparent sprite pixel wins
+                }
+            }
+        }
+
+        oam_dot_penalty
+    }
+
     pub fn update(&mut self, cpu: &mut CPU, screen_buffer: &mut [[u8; WIDTH]; HEIGHT], scanline: u8) -> u32 {
         let mut oam_dot_penalty = 0;
         
@@ -317,4 +471,6 @@ impl PPU {
         
         return oam_dot_penalty as u32;
     }
+
+    
 }

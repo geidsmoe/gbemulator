@@ -437,6 +437,12 @@ impl CPU {
             self.ram[address] = 0;
             self.div_cycles = 0;
           }
+          0xFF40 => {
+            if (self.ram[0xFF40] & 0x80) != 0 && (value & 0x80) == 0 {
+              self.set_stat_ppu_mode(0);
+            }
+            self.ram[address] = value;
+          }
           0xFF43 => {
             self.ram[address] = value;
           }
